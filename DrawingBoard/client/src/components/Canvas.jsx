@@ -1,7 +1,14 @@
 import { useEffect } from 'react';
 import useCanvas from '../hooks/useCanvas';
 
-export default function Canvas({ brushSize, color, isEraser, strokes, onStrokesChange, remoteCursors, onCursorMove }) {
+export default function Canvas({   brushSize,
+  color,
+  isEraser,
+  strokes,
+  onStrokesChange,
+  remoteCursors,
+  onCursorMove
+}) {
   const {
     canvasRef,
     startDrawing,
@@ -32,7 +39,7 @@ export default function Canvas({ brushSize, color, isEraser, strokes, onStrokesC
   };
 
   return (
-    <div className="canvas-container" style={{ position: 'relative' }}>
+    <div className="canvas-container">
       <canvas
         ref={canvasRef}
         onMouseDown={(e) => startDrawing(e, brushSize, color, isEraser)}

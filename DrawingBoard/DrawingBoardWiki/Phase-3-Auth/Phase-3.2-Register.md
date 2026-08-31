@@ -1,6 +1,6 @@
 # Phase 3.2: Register
 
-> **Status:** ⬜ Not Started  
+> **Status:** ✅ Completed  
 > **Priority:** High  
 > **Depends On:** [[Phase-3.1-User-Model]]
 
@@ -88,10 +88,10 @@ Should return: `{"message":"User created successfully","userId":"..."}`
 
 ## Completion Checklist
 
-- [ ] Register endpoint created
-- [ ] Validation works
-- [ ] Duplicate user check works
-- [ ] Password hashed
+- [x] Register endpoint created
+- [x] Validation works
+- [x] Duplicate user check works
+- [x] Password hashed
 
 ## Next Phase
 

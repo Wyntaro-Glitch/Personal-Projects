@@ -3,7 +3,7 @@ import { io } from 'socket.io-client';
 
 const SOCKET_URL = 'http://localhost:3000';
 
-export default function useSocket() {
+export default function useSocket(userInfo = null) {
   const [socket, setSocket] = useState(null);
   const [connected, setConnected] = useState(false);
 
@@ -14,6 +14,15 @@ export default function useSocket() {
     newSocket.on('connect', () => {
       setConnected(true);
       console.log('Connected to server');
+      
+      // Send user info if available (for guest tracking)
+      if (userInfo) {
+        newSocket.emit('user-info', {
+          userId: userInfo.id,
+          username: userInfo.username,
+          isGuest: userInfo.isGuest || false
+        });
+      }
     });
 
     newSocket.on('disconnect', () => {
@@ -22,7 +31,7 @@ export default function useSocket() {
     });
 
     return () => newSocket.close();
-  }, []);
+  }, [userInfo]);
 
   const emitStroke = useCallback((stroke) => {
     if (socket) {
@@ -64,6 +73,13 @@ export default function useSocket() {
     }
   }, [socket]);
 
+  const onUsersUpdate = useCallback((callback) => {
+    if (socket) {
+      socket.on('users-update', callback);
+      return () => socket.off('users-update', callback);
+    }
+  }, [socket]);
+
   return {
     socket,
     connected,
@@ -72,6 +88,7 @@ export default function useSocket() {
     onReceiveStroke,
     onLoadStrokes,
     onCursorUpdate,
-    onUserLeft
+    onUserLeft,
+    onUsersUpdate
   };
 }

@@ -5,7 +5,9 @@ export default function Users({ users, currentUserId }) {
       <ul>
         {users.map(user => (
           <li key={user.id} style={{ color: user.color }}>
-            {user.id === currentUserId ? 'You' : `User ${user.id.slice(0, 5)}`}
+            {user.id === currentUserId 
+              ? `You (${user.username || 'Guest'})` 
+              : (user.username || `User ${user.id.slice(0, 5)}`)}
           </li>
         ))}
       </ul>

@@ -1,6 +1,6 @@
 # Phase 2.4: Remote Cursors
 
-> **Status:** ⬜ Not Started  
+> **Status:** ✅ Completed  
 > **Priority:** Medium  
 > **Depends On:** [[Phase-2.3-Broadcast-Strokes]]
 
@@ -207,9 +207,9 @@ const handleCursorMove = (data) => {
 
 ## Completion Checklist
 
-- [ ] Cursor positions broadcast
-- [ ] Remote cursors rendered
-- [ ] Cursors disappear on disconnect
+- [x] Cursor positions broadcast
+- [x] Remote cursors rendered
+- [x] Cursors disappear on disconnect
 
 ## Next Phase
 

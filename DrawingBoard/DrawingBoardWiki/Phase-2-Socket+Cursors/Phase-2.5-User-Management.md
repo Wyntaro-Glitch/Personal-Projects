@@ -1,6 +1,6 @@
 # Phase 2.5: User Management
 
-> **Status:** ⬜ Not Started  
+> **Status:** ✅ Completed  
 > **Priority:** Low  
 > **Depends On:** [[Phase-2.4-Remote-Cursors]]
 
@@ -107,13 +107,15 @@ function App() {
 
 ## Completion Checklist
 
-- [ ] Users component created
-- [ ] Users panel styled
-- [ ] Shows current user
+- [x] Users component created
+- [x] Users panel styled
+- [x] Shows current user
+- [x] Server tracks connected users
+- [x] Users update on connect/disconnect
 
 ## Notes
 
-Full user list requires server to track connected users. This is a basic implementation showing only current user. Can be enhanced later.
+Server tracks all connected users and broadcasts updates to all clients.
 
 ## Phase Complete
 

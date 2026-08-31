@@ -38,20 +38,30 @@
 | Sub-Phase | Name | Status | Link |
 |-----------|------|--------|------|
 | 2.1 | Socket Server | ✅ Completed | [[Phase-2-Socket+Cursors/Phase-2.1-Socket-Server]] |
-| 2.2 | Socket Client | 🔄 In Progress | [[Phase-2-Socket+Cursors/Phase-2.2-Socket-Client]] |
-| 2.3 | Broadcast Strokes | ⬜ Not Started | [[Phase-2-Socket+Cursors/Phase-2.3-Broadcast-Strokes]] |
-| 2.4 | Remote Cursors | ⬜ Not Started | [[Phase-2-Socket+Cursors/Phase-2.4-Remote-Cursors]] |
-| 2.5 | User Management | ⬜ Not Started | [[Phase-2-Socket+Cursors/Phase-2.5-User-Management]] |
+| 2.2 | Socket Client | ✅ Completed | [[Phase-2-Socket+Cursors/Phase-2.2-Socket-Client]] |
+| 2.3 | Broadcast Strokes | ✅ Completed | [[Phase-2-Socket+Cursors/Phase-2.3-Broadcast-Strokes]] |
+| 2.4 | Remote Cursors | ✅ Completed | [[Phase-2-Socket+Cursors/Phase-2.4-Remote-Cursors]] |
+| 2.5 | User Management | ✅ Completed | [[Phase-2-Socket+Cursors/Phase-2.5-User-Management]] |
 
 ### Phase 3: User Authentication
 
 | Sub-Phase | Name | Status | Link |
 |-----------|------|--------|------|
-| 3.1 | User Model | ⬜ Not Started | [[Phase-3-Auth/Phase-3.1-User-Model]] |
-| 3.2 | Register | ⬜ Not Started | [[Phase-3-Auth/Phase-3.2-Register]] |
-| 3.3 | Login | ⬜ Not Started | [[Phase-3-Auth/Phase-3.3-Login]] |
-| 3.4 | Auth UI | ⬜ Not Started | [[Phase-3-Auth/Phase-3.4-Auth-UI]] |
-| 3.5 | Protected Routes | ⬜ Not Started | [[Phase-3-Auth/Phase-3.5-Protected-Routes]] |
+| 3.1 | User Model | ✅ Completed | [[Phase-3-Auth/Phase-3.1-User-Model]] |
+| 3.2 | Register | ✅ Completed | [[Phase-3-Auth/Phase-3.2-Register]] |
+| 3.3 | Login | ✅ Completed | [[Phase-3-Auth/Phase-3.3-Login]] |
+| 3.4 | Auth UI | ✅ Completed | [[Phase-3-Auth/Phase-3.4-Auth-UI]] |
+| 3.5 | Protected Routes | ✅ Completed | [[Phase-3-Auth/Phase-3.5-Protected-Routes]] |
+
+### Phase 4: Room Creation
+
+| Sub-Phase | Name | Status | Link |
+|-----------|------|--------|------|
+| 4.1 | Room Model | ⬜ Not Started | [[Phase-4-Rooms/Phase-4.1-Room-Model]] |
+| 4.2 | Room API | ⬜ Not Started | [[Phase-4-Rooms/Phase-4.2-Room-API]] |
+| 4.3 | Room UI | ⬜ Not Started | [[Phase-4-Rooms/Phase-4.3-Room-UI]] |
+| 4.4 | Socket Rooms | ⬜ Not Started | [[Phase-4-Rooms/Phase-4.4-Socket-Rooms]] |
+| 4.5 | Room Drawing | ⬜ Not Started | [[Phase-4-Rooms/Phase-4.5-Room-Drawing]] |
 
 ## Project Structure (Target)
 
@@ -105,7 +115,9 @@ DrawingBoard/
 - [x] Undo/redo works
 - [x] Strokes persist via API
 - [x] Socket.io server configured
-- [ ] Client connects to Socket.io
-- [ ] Strokes broadcast to all users
-- [ ] Remote cursors visible
-- [ ] Users tracked
+- [x] Client connects to Socket.io
+- [x] Strokes broadcast to all users
+- [x] Remote cursors visible
+- [x] Users tracked
+- [x] User registration and login
+- [x] Protected routes

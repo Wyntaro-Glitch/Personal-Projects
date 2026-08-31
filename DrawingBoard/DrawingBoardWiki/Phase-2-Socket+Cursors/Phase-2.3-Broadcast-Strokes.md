@@ -1,6 +1,6 @@
 # Phase 2.3: Broadcast Strokes
 
-> **Status:** ⬜ Not Started  
+> **Status:** ✅ Completed  
 > **Priority:** High  
 > **Depends On:** [[Phase-2.2-Socket-Client]]
 
@@ -121,9 +121,9 @@ const handleStrokesChange = (stroke) => {
 
 ## Completion Checklist
 
-- [ ] Server broadcasts strokes
-- [ ] New users load existing strokes
-- [ ] Strokes sync across tabs
+- [x] Server broadcasts strokes
+- [x] New users load existing strokes
+- [x] Strokes sync across tabs
 
 ## Next Phase
 

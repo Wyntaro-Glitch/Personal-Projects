@@ -1,6 +1,6 @@
 # Phase 3: User Authentication
 
-Registration and login for multi-user collaboration.
+Registration, login, and guest access for multi-user collaboration.
 
 ## Files
 
@@ -8,12 +8,12 @@ Registration and login for multi-user collaboration.
 - `Phase-3.1-User-Model.md` - MongoDB User model
 - `Phase-3.2-Register.md` - Register endpoint
 - `Phase-3.3-Login.md` - Login with JWT
-- `Phase-3.4-Auth-UI.md` - React login/register forms
+- `Phase-3.4-Auth-UI.md` - React login/register/guest forms
 - `Phase-3.5-Protected-Routes.md` - Route guards
 
 ## Quick Start
 
-1. Install MongoDB locally or use MongoDB Atlas
+1. MongoDB Atlas configured
 2. Install dependencies:
    ```bash
    cd server && npm install mongoose bcrypt jsonwebtoken
@@ -21,9 +21,6 @@ Registration and login for multi-user collaboration.
    ```
 3. Follow phases in order
 
-## Dependencies
+## Guest Access
 
-- MongoDB running locally or Atlas connection string
-- bcrypt for password hashing
-- jsonwebtoken for JWT tokens
-- react-router-dom for routing
+Users can join instantly by entering a display name - no registration required.
