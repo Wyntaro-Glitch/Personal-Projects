@@ -20,8 +20,8 @@
 | Phase | Name | Status | Link |
 |-------|------|--------|------|
 | 1 | Project Setup (React) | ✅ Completed | [[Phase-1-Setup-React]] |
-| 2 | Server (API Only) | 🔄 In Progress | [[Phase-2-Server-API]] |
-| 3 | React App + Canvas | ⬜ Not Started | [[Phase-3-React-Canvas]] |
+| 2 | Server (API Only) | ✅ Completed | [[Phase-2-Server-API]] |
+| 3 | React App + Canvas | 🔄 In Progress | [[Phase-3-React-Canvas]] |
 | 4 | Drawing Tools | ⬜ Not Started | [[Phase-4-Tools]] |
 | 5 | State Management | ⬜ Not Started | [[Phase-5-State]] |
 | 6 | Polish | ⬜ Not Started | [[Phase-6-Polish]] |

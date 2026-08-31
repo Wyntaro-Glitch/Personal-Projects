@@ -4,16 +4,16 @@
 
 ## Overall Status
 
-**Current Phase:** Phase 2 - Server (API Only)  
-**Completion:** 14% (1/7 phases)
+**Current Phase:** Phase 3 - React App + Canvas  
+**Completion:** 28% (2/7 phases)
 
 ## Phase Status
 
 | Phase | Status | Started | Completed | Notes |
 |-------|--------|---------|-----------|-------|
 | 1 | ✅ Completed | 2026-08-31 | 2026-08-31 | React + Vite + Express setup complete |
-| 2 | 🔄 In Progress | 2026-08-31 | - | Creating API-only server |
-| 3 | ⬜ Not Started | - | - | |
+| 2 | ✅ Completed | 2026-08-31 | 2026-08-31 | API-only server with GET/POST endpoints |
+| 3 | 🔄 In Progress | 2026-08-31 | - | Creating React Canvas component |
 | 4 | ⬜ Not Started | - | - | |
 | 5 | ⬜ Not Started | - | - | |
 | 6 | ⬜ Not Started | - | - | |
@@ -38,19 +38,21 @@ See [[Backtrack-Changes]] for details.
 Track major accomplishments:
 
 - Phase 1 complete - React + Vite + Express setup
+- Phase 2 complete - API-only server
 - Created new folder structure (server/, client/)
 - Initialized React app with Vite
-- Set up Express server with API endpoints
+- Set up Express server with GET/POST endpoints
+- CORS and JSON middleware configured
 - Cleaned up old vanilla JS files
 
 ## Next Actions
 
 What to work on next:
 
-1. Test server starts without errors
-2. Verify GET /strokes endpoint works
-3. Verify POST /strokes endpoint works
-4. Move to Phase 3 - React Canvas component
+1. Create Canvas component in React
+2. Add mouse event handlers for drawing
+3. Test drawing works in browser
+4. Move to Phase 4 - Drawing tools
 
 ## Blockers
 

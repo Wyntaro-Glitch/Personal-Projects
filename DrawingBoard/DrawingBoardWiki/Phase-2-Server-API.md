@@ -1,6 +1,6 @@
 # Phase 2: Server (API Only)
 
-> **Status:** ⬜ Not Started  
+> **Status:** ✅ Completed  
 > **Priority:** High  
 > **Depends On:** [[Phase-1-Setup-React]]
 
@@ -14,11 +14,11 @@ Server now only handles data (strokes), not HTML. React handles all UI rendering
 
 ## Deliverables
 
-- [ ] Express server in `server/` folder
-- [ ] CORS enabled for React dev server
-- [ ] `GET /strokes` endpoint
-- [ ] `POST /strokes` endpoint
-- [ ] Server runs on port 3000
+- [x] Express server in `server/` folder
+- [x] CORS enabled for React dev server
+- [x] `GET /strokes` endpoint
+- [x] `POST /strokes` endpoint
+- [x] Server runs on port 3000
 
 ## Tasks
 
@@ -107,11 +107,11 @@ curl -X POST http://localhost:3000/strokes \
 
 ## Completion Checklist
 
-- [ ] Server starts without errors
-- [ ] GET /strokes returns array
-- [ ] POST /strokes saves data
-- [ ] CORS enabled
-- [ ] No static file serving
+- [x] Server starts without errors
+- [x] GET /strokes returns array
+- [x] POST /strokes saves data
+- [x] CORS enabled
+- [x] No static file serving
 
 ## Common Issues
 
