@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Phase-4-Tools.md",
+                "file": "Phase-5-State.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Phase-4-Tools"
+              "title": "Phase-5-State"
             }
           }
         ]
@@ -190,6 +190,10 @@
   },
   "active": "1f886fd59f3debdf",
   "lastOpenFiles": [
+    "Phase-6-Polish.md",
+    "Phase-5-State.md",
+    "Phase-4-Tools.md",
+    "Phase-7-Documentation.md",
     "Phase-3-React-Canvas.md",
     "Phase-2-Server-API.md",
     "Phase-2-Server.md",

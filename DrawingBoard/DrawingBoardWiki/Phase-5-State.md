@@ -1,142 +1,129 @@
-# Phase 5: State Management
+# Phase 5: State Management (React)
 
-> **Status:** ⬜ Not Started  
+> **Status:** ✅ Completed  
 > **Priority:** Medium  
 > **Depends On:** [[Phase-4-Tools]]
 
 ## Objective
 
-Enable undo/redo and persist strokes to server memory.
+Enable undo/redo and persist strokes to server memory using React hooks.
 
 ## Why This Matters
 
 Prevents data loss and enables persistence across page reloads. Without this, closing the browser loses everything.
 
+## File Structure
+
+```
+client/src/
+├── hooks/
+│   ├── useCanvas.js         # Drawing logic
+│   └── useStrokeHistory.js  # Undo/redo logic
+├── api/
+│   └── strokes.js           # API calls
+├── components/
+│   ├── Canvas.jsx           # Updated with hooks
+│   └── Toolbar.jsx          # Updated with undo/redo buttons
+└── App.jsx                  # Updated with state
+```
+
 ## Deliverables
 
-- [ ] `undo` restores previous canvas state
-- [ ] `redo` reapplies undone stroke
-- [ ] `clear` wipes canvas
-- [ ] Server stores strokes array in memory
-- [ ] On page load, strokes reload from server
+- [ ] `useCanvas.js` - Custom hook for drawing
+- [ ] `useStrokeHistory.js` - Undo/redo logic
+- - [ ] `strokes.js` - API calls
+- [ ] Updated `Canvas.jsx` - Uses hooks
+- [ ] Updated `Toolbar.jsx` - Undo/redo buttons
+- [ ] Updated `App.jsx` - State management
 
 ## Tasks
 
-### 1. Create Stroke Data Structure
+### 1. Create `client/src/api/strokes.js`
 
 ```javascript
-// Array to store all strokes
-let strokes = [];
-let currentStroke = null;
+const API_URL = 'http://localhost:3000';
 
-// Each stroke is an object:
-// {
-//   points: [{x, y}, {x, y}, ...],
-//   color: '#000000',
-//   width: 5
-// }
-```
-
-**What this does:**
-- Organizes drawing data for saving/loading
-- Each stroke tracks its points, color, and width
-- Array preserves order of strokes
-
----
-
-### 2. Update mousedown to Start Stroke
-
-```javascript
-canvas.addEventListener('mousedown', (e) => {
-  drawing = true;
-  currentStroke = {
-    points: [],
-    color: isEraser ? '#FFFFFF' : currentColor,
-    width: ctx.lineWidth
-  };
-  ctx.beginPath();
-  ctx.moveTo(e.offsetX, e.offsetY);
-  currentStroke.points.push({x: e.offsetX, y: e.offsetY});
-});
-```
-
-**What this does:**
-- Creates new stroke object when user starts drawing
-- Records first point
-- Stores color and width for this stroke
-
----
-
-### 3. Update mousemove to Record Points
-
-```javascript
-canvas.addEventListener('mousemove', (e) => {
-  if (!drawing) return;
-  ctx.lineTo(e.offsetX, e.offsetY);
-  ctx.stroke();
-  currentStroke.points.push({x: e.offsetX, y: e.offsetY});
-});
-```
-
-**What this does:**
-- Adds each point to stroke data as user draws
-- Visual rendering happens immediately
-- Data is captured for saving
-
----
-
-### 4. Update mouseup to Save Stroke
-
-```javascript
-canvas.addEventListener('mouseup', () => {
-  drawing = false;
-  if (currentStroke && currentStroke.points.length > 0) {
-    strokes.push(currentStroke);
-    currentStroke = null;
-    saveToServer();
-  }
-});
-```
-
-**What this does:**
-- Adds completed stroke to strokes array
-- Clears current stroke reference
-- Triggers save to server
-
----
-
-### 5. Implement Undo/Redo
-
-```javascript
-let undoStack = [];
-let redoStack = [];
-
-function undo() {
-  if (strokes.length === 0) return;
-  const lastStroke = strokes.pop();
-  undoStack.push(lastStroke);
-  redrawCanvas();
-}
-
-function redo() {
-  if (undoStack.length === 0) return;
-  const stroke = undoStack.pop();
-  strokes.push(stroke);
-  redrawCanvas();
-}
-
-function redrawCanvas() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  strokes.forEach(stroke => {
-    ctx.strokeStyle = stroke.color;
-    ctx.lineWidth = stroke.width;
-    ctx.beginPath();
-    ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
-    stroke.points.forEach(point => {
-      ctx.lineTo(point.x, point.y);
+export async function saveStrokes(strokes) {
+  try {
+    const response = await fetch(`${API_URL}/strokes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(strokes)
     });
-    ctx.stroke();
-  });
+    return await response.json();
+  } catch (err) {
+    console.error('Save failed:', err);
+  }
+}
+
+export async function loadStrokes() {
+  try {
+    const response = await fetch(`${API_URL}/strokes`);
+    return await response.json();
+  } catch (err) {
+    console.error('Load failed:', err);
+    return [];
+  }
+}
+```
+
+**What this does:**
+- `saveStrokes()` - Sends strokes to server
+- `loadStrokes()` - Fetches strokes from server
+- Centralized API logic
+
+---
+
+### 2. Create `client/src/hooks/useStrokeHistory.js`
+
+```javascript
+import { useState, useCallback } from 'react';
+
+export default function useStrokeHistory() {
+  const [strokes, setStrokes] = useState([]);
+  const [undoStack, setUndoStack] = useState([]);
+
+  const addToHistory = useCallback((stroke) => {
+    setStrokes(prev => [...prev, stroke]);
+    setUndoStack([]); // Clear redo stack on new action
+  }, []);
+
+  const undo = useCallback(() => {
+    if (strokes.length === 0) return null;
+    const lastStroke = strokes[strokes.length - 1];
+    setStrokes(prev => prev.slice(0, -1));
+    setUndoStack(prev => [...prev, lastStroke]);
+    return lastStroke;
+  }, [strokes]);
+
+  const redo = useCallback(() => {
+    if (undoStack.length === 0) return null;
+    const stroke = undoStack[undoStack.length - 1];
+    setUndoStack(prev => prev.slice(0, -1));
+    setStrokes(prev => [...prev, stroke]);
+    return stroke;
+  }, [undoStack]);
+
+  const clearHistory = useCallback(() => {
+    setStrokes([]);
+    setUndoStack([]);
+  }, []);
+
+  const setInitialStrokes = useCallback((initialStrokes) => {
+    setStrokes(initialStrokes);
+    setUndoStack([]);
+  }, []);
+
+  return {
+    strokes,
+    undo,
+    redo,
+    addToHistory,
+    clearHistory,
+    setInitialStrokes,
+    canUndo: strokes.length > 0,
+    canRedo: undoStack.length > 0
+  };
 }
 ```
 
@@ -144,154 +131,324 @@ function redrawCanvas() {
 
 | Function | What It Does | Why It Matters |
 |----------|--------------|----------------|
-| `undo()` | Moves last stroke to undo stack | Reverses last action |
-| `redo()` | Moves stroke back from undo stack | Reapplies undone action |
-| `redrawCanvas()` | Clears and redraws all strokes | Ensures visual matches data |
+| `addToHistory()` | Adds new stroke | Tracks drawing |
+| `undo()` | Removes last stroke | Reverses action |
+| `redo()` | Reapplies undone stroke | Restores action |
+| `clearHistory()` | Empties all stacks | Fresh start |
+| `setInitialStrokes()` | Loads saved strokes | Persistence |
 
 ---
 
-### 6. Add Undo/Redo Buttons
-
-```html
-<button id="undoBtn">Undo</button>
-<button id="redoBtn">Redo</button>
-```
+### 3. Create `client/src/hooks/useCanvas.js`
 
 ```javascript
-document.getElementById('undoBtn').addEventListener('click', undo);
-document.getElementById('redoBtn').addEventListener('click', redo);
-```
+import { useRef, useCallback } from 'react';
+import { saveStrokes } from '../api/strokes';
 
----
+export default function useCanvas(strokes, addToHistory) {
+  const canvasRef = useRef(null);
+  const isDrawingRef = useRef(false);
+  const currentStrokeRef = useRef(null);
 
-### 7. Create Server Endpoints
+  const getCtx = useCallback(() => {
+    const canvas = canvasRef.current;
+    return canvas ? canvas.getContext('2d') : null;
+  }, []);
 
-Update `server.js`:
+  const startDrawing = useCallback((e, brushSize, color, isEraser) => {
+    const ctx = getCtx();
+    if (!ctx) return;
 
-```javascript
-const express = require('express');
-const app = express();
-const PORT = 3000;
+    isDrawingRef.current = true;
+    currentStrokeRef.current = {
+      points: [],
+      color: isEraser ? '#FFFFFF' : color,
+      width: brushSize
+    };
 
-app.use(express.static('public'));
-app.use(express.json()); // Enable JSON parsing
-
-let savedStrokes = [];
-
-// GET endpoint to retrieve strokes
-app.get('/strokes', (req, res) => {
-  res.json(savedStrokes);
-});
-
-// POST endpoint to save strokes
-app.post('/strokes', (req, res) => {
-  savedStrokes = req.body;
-  res.json({ success: true });
-});
-
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-});
-```
-
-**What this does:**
-- `GET /strokes` - Returns all saved strokes as JSON
-- `POST /strokes` - Receives and stores strokes array
-- `savedStrokes` array keeps data in server memory
-
----
-
-### 8. Save Strokes to Server
-
-```javascript
-async function saveToServer() {
-  try {
-    await fetch('/strokes', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(strokes)
+    ctx.beginPath();
+    ctx.lineWidth = brushSize;
+    ctx.strokeStyle = isEraser ? '#FFFFFF' : color;
+    ctx.moveTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
+    currentStrokeRef.current.points.push({
+      x: e.nativeEvent.offsetX,
+      y: e.nativeEvent.offsetY
     });
-  } catch (err) {
-    console.error('Save failed:', err);
-  }
+  }, [getCtx]);
+
+  const draw = useCallback((e) => {
+    if (!isDrawingRef.current) return;
+    const ctx = getCtx();
+    if (!ctx) return;
+
+    ctx.lineTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
+    ctx.stroke();
+    currentStrokeRef.current.points.push({
+      x: e.nativeEvent.offsetX,
+      y: e.nativeEvent.offsetY
+    });
+  }, [getCtx]);
+
+  const stopDrawing = useCallback(() => {
+    if (!isDrawingRef.current) return;
+    isDrawingRef.current = false;
+
+    if (currentStrokeRef.current && currentStrokeRef.current.points.length > 0) {
+      addToHistory(currentStrokeRef.current);
+      currentStrokeRef.current = null;
+    }
+  }, [addToHistory]);
+
+  const redrawCanvas = useCallback((strokesToRedraw) => {
+    const ctx = getCtx();
+    const canvas = canvasRef.current;
+    if (!ctx || !canvas) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    strokesToRedraw.forEach(stroke => {
+      ctx.strokeStyle = stroke.color;
+      ctx.lineWidth = stroke.width;
+      ctx.beginPath();
+      ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+      stroke.points.forEach(point => {
+        ctx.lineTo(point.x, point.y);
+      });
+      ctx.stroke();
+    });
+  }, [getCtx]);
+
+  const clearCanvas = useCallback(() => {
+    const ctx = getCtx();
+    const canvas = canvasRef.current;
+    if (ctx && canvas) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }, [getCtx]);
+
+  return {
+    canvasRef,
+    startDrawing,
+    draw,
+    stopDrawing,
+    redrawCanvas,
+    clearCanvas
+  };
 }
 ```
 
 **What this does:**
-- Sends strokes array to server as JSON
-- Called after each stroke completes
-- Server stores in memory
+- Encapsulates all canvas logic
+- Tracks current stroke
+- Provides redraw function for undo/redo
 
 ---
 
-### 9. Load Strokes on Page Load
+### 4. Update `client/src/components/Canvas.jsx`
 
-```javascript
-async function loadFromServer() {
-  try {
-    const response = await fetch('/strokes');
-    strokes = await response.json();
-    redrawCanvas();
-  } catch (err) {
-    console.error('Load failed:', err);
-  }
+```jsx
+import { useEffect } from 'react';
+import useCanvas from '../hooks/useCanvas';
+
+export default function Canvas({ brushSize, color, isEraser, strokes, onStrokesChange }) {
+  const {
+    canvasRef,
+    startDrawing,
+    draw,
+    stopDrawing,
+    redrawCanvas
+  } = useCanvas(strokes, onStrokesChange);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      canvas.width = 800;
+      canvas.height = 600;
+    }
+  }, [canvasRef]);
+
+  useEffect(() => {
+    redrawCanvas(strokes);
+  }, [strokes, redrawCanvas]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      onMouseDown={(e) => startDrawing(e, brushSize, color, isEraser)}
+      onMouseMove={draw}
+      onMouseUp={stopDrawing}
+      onMouseLeave={stopDrawing}
+      style={{ border: '1px solid #000', cursor: 'crosshair' }}
+    />
+  );
 }
-
-// Call on page load
-window.addEventListener('load', loadFromServer);
 ```
 
-**What this does:**
-- Fetches strokes from server when page loads
-- Rebuilds canvas from saved data
-- Provides persistence across reloads
+---
+
+### 5. Update `client/src/components/Toolbar.jsx`
+
+```jsx
+export default function Toolbar({
+  brushSize,
+  setBrushSize,
+  color,
+  setColor,
+  isEraser,
+  setIsEraser,
+  clearCanvas,
+  undo,
+  redo,
+  canUndo,
+  canRedo
+}) {
+  return (
+    <div className="toolbar">
+      <input
+        type="range"
+        min="1"
+        max="50"
+        value={brushSize}
+        onChange={(e) => setBrushSize(Number(e.target.value))}
+      />
+      <input
+        type="color"
+        value={color}
+        onChange={(e) => {
+          setColor(e.target.value);
+          setIsEraser(false);
+        }}
+      />
+      <button
+        className={isEraser ? 'active' : ''}
+        onClick={() => setIsEraser(!isEraser)}
+      >
+        Eraser
+      </button>
+      <button onClick={clearCanvas}>Clear</button>
+      <button onClick={undo} disabled={!canUndo}>Undo</button>
+      <button onClick={redo} disabled={!canRedo}>Redo</button>
+    </div>
+  );
+}
+```
+
+---
+
+### 6. Update `client/src/App.jsx`
+
+```jsx
+import { useState, useEffect } from 'react';
+import Canvas from './components/Canvas';
+import Toolbar from './components/Toolbar';
+import useStrokeHistory from './hooks/useStrokeHistory';
+import { saveStrokes, loadStrokes } from './api/strokes';
+
+function App() {
+  const [brushSize, setBrushSize] = useState(5);
+  const [color, setColor] = useState('#000000');
+  const [isEraser, setIsEraser] = useState(false);
+
+  const {
+    strokes,
+    undo,
+    redo,
+    addToHistory,
+    clearHistory,
+    setInitialStrokes,
+    canUndo,
+    canRedo
+  } = useStrokeHistory();
+
+  // Load strokes on mount
+  useEffect(() => {
+    async function init() {
+      const savedStrokes = await loadStrokes();
+      if (savedStrokes.length > 0) {
+        setInitialStrokes(savedStrokes);
+      }
+    }
+    init();
+  }, [setInitialStrokes]);
+
+  // Save strokes when they change
+  useEffect(() => {
+    if (strokes.length > 0) {
+      saveStrokes(strokes);
+    }
+  }, [strokes]);
+
+  const handleStrokesChange = (stroke) => {
+    addToHistory(stroke);
+  };
+
+  const clearCanvas = () => {
+    clearHistory();
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  };
+
+  return (
+    <div className="App">
+      <h1>Drawing Board</h1>
+      <Toolbar
+        brushSize={brushSize}
+        setBrushSize={setBrushSize}
+        color={color}
+        setColor={setColor}
+        isEraser={isEraser}
+        setIsEraser={setIsEraser}
+        clearCanvas={clearCanvas}
+        undo={undo}
+        redo={redo}
+        canUndo={canUndo}
+        canRedo={canRedo}
+      />
+      <Canvas
+        brushSize={brushSize}
+        color={color}
+        isEraser={isEraser}
+        strokes={strokes}
+        onStrokesChange={handleStrokesChange}
+      />
+    </div>
+  );
+}
+
+export default App;
+```
 
 ## Completion Checklist
 
+- [ ] `api/strokes.js` created
+- [ ] `hooks/useStrokeHistory.js` created
+- [ ] `hooks/useCanvas.js` created
+- [ ] `Canvas.jsx` updated
+- [ ] `Toolbar.jsx` updated with undo/redo buttons
+- [ ] `App.jsx` updated with state management
 - [ ] Undo button works
 - [ ] Redo button works
-- [ ] Clear button works
-- [ ] Strokes save to server after each stroke
+- [ ] Strokes save to server
 - [ ] Strokes reload on page refresh
-- [ ] No data loss on reload
 
 ## Verification
 
-1. Start server: `node server.js`
-2. Open `http://localhost:3000/index.html`
-3. Draw something
-4. Refresh page → drawing should persist
-5. Click undo → last stroke removed
-6. Click redo → stroke reappears
+1. Start server: `cd server && npm start`
+2. Start client: `cd client && npm run dev`
+3. Open `http://localhost:5173`
+4. Draw something
+5. Click Undo → last stroke removed
+6. Click Redo → stroke reappears
+7. Refresh page → drawing persists
 
 ## Common Issues
 
 | Issue | Cause | Solution |
 |-------|-------|----------|
-| Undo doesn't work | Not tracking strokes array | Ensure strokes are added on mouseup |
-| Strokes lost on reload | Server endpoints missing | Check GET/POST routes |
-| Canvas blank on load | Not calling redrawCanvas | Ensure redrawCanvas() in loadFromServer |
-| Save fails | fetch() error | Check server is running, endpoints exist |
-
-## Debugging Flowchart
-
-```
-Strokes not persisting
-    ↓
-Is saveToServer() called?
-    ↓
-├── No → Check mouseup handler
-└── Yes → Is server receiving?
-    ↓
-    ├── No → Check fetch URL
-    └── Yes → Is server storing?
-        ↓
-        ├── No → Check savedStrokes array
-        └── Yes → Is loadFromServer() called?
-            ↓
-            ├── No → Add window load listener
-            └── Yes → Check response parsing
-```
+| Undo doesn't work | Not using hook | Check useStrokeHistory imported |
+| Strokes lost on reload | API URL wrong | Check localhost:3000 |
+| Canvas blank on load | Not calling redrawCanvas | Check useEffect in Canvas.jsx |
+| Save fails | Server not running | Start server first |
 
 ## Next Phase
 

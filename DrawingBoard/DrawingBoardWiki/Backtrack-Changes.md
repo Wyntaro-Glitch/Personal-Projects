@@ -1,6 +1,8 @@
 # Backtrack Changes
 
 > What changed from the original vanilla JS plan to React + Vite
+> 
+> **Date:** 2026-08-31
 
 ## Summary
 

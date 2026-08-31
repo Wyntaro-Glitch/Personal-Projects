@@ -4,8 +4,8 @@
 
 ## Overall Status
 
-**Current Phase:** Phase 4 - Drawing Tools  
-**Completion:** 42% (3/7 phases)
+**Current Phase:** Phase 6 - Polish  
+**Completion:** 71% (5/7 phases)
 
 ## Phase Status
 
@@ -14,9 +14,9 @@
 | 1 | ✅ Completed | 2026-08-31 | 2026-08-31 | React + Vite + Express setup complete |
 | 2 | ✅ Completed | 2026-08-31 | 2026-08-31 | API-only server with GET/POST endpoints |
 | 3 | ✅ Completed | 2026-08-31 | 2026-08-31 | React Canvas component working |
-| 4 | 🔄 In Progress | 2026-08-31 | - | Adding brush, color, eraser tools |
-| 5 | ⬜ Not Started | - | - | |
-| 6 | ⬜ Not Started | - | - | |
+| 4 | ✅ Completed | 2026-08-31 | 2026-08-31 | Drawing tools (brush, color, eraser) |
+| 5 | ✅ Completed | 2026-08-31 | 2026-08-31 | Undo/redo, save/load strokes working |
+| 6 | 🔄 In Progress | 2026-08-31 | - | Keyboard shortcuts, UI polish |
 | 7 | ⬜ Not Started | - | - | |
 
 ## Status Legend
@@ -40,20 +40,24 @@ Track major accomplishments:
 - Phase 1 complete - React + Vite + Express setup
 - Phase 2 complete - API-only server
 - Phase 3 complete - React Canvas component working
+- Phase 4 complete - Drawing tools (brush, color, eraser)
+- Phase 5 complete - Undo/redo, save/load strokes working
 - Created new folder structure (server/, client/)
 - Initialized React app with Vite
 - Set up Express server with GET/POST endpoints
 - CORS and JSON middleware configured
 - Cleaned up old vanilla JS files
+- Created custom hooks (useCanvas, useStrokeHistory)
+- Implemented API calls (saveStrokes, loadStrokes)
 
 ## Next Actions
 
 What to work on next:
 
-1. Add brush size slider
-2. Add color picker
-3. Add eraser tool
-4. Move to Phase 5 - State management
+1. Add keyboard shortcuts (Ctrl+Z, Ctrl+Y)
+2. Add download PNG button
+3. Polish UI styles
+4. Move to Phase 7 - Documentation
 
 ## Blockers
 
@@ -69,7 +73,9 @@ Track time spent (optional):
 
 | Date | Phase | Hours | Activity |
 |------|-------|-------|----------|
-| | | | |
+| 2026-08-31 | Phase 1 | 1 | Project setup, React + Vite + Express |
+| 2026-08-31 | Phase 2 | 1 | API-only server with GET/POST endpoints |
+| 2026-08-31 | Phase 3 | 1 | React Canvas component working |
 
 ## Git Commits
 
@@ -77,4 +83,4 @@ Track significant commits:
 
 | Date | Commit | Description |
 |------|--------|-------------|
-| | | |
+| 2026-08-31 | Initial setup | Phase 1-3 complete - React + Vite + Express + Canvas |

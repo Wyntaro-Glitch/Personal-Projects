@@ -1,6 +1,8 @@
 # DrawingBoard Wiki
 
 > Local Canvas Drawing Server - Personal Project Tracker
+> 
+> **Last Updated:** 2026-08-31
 
 ## Tech Stack
 
@@ -22,10 +24,10 @@
 | 1 | Project Setup (React) | ✅ Completed | [[Phase-1-Setup-React]] |
 | 2 | Server (API Only) | ✅ Completed | [[Phase-2-Server-API]] |
 | 3 | React App + Canvas | ✅ Completed | [[Phase-3-React-Canvas]] |
-| 4 | Drawing Tools | 🔄 In Progress | [[Phase-4-Tools]] |
-| 5 | State Management | ⬜ Not Started | [[Phase-5-State]] |
-| 6 | Polish | ⬜ Not Started | [[Phase-6-Polish]] |
-| 7 | Documentation | ⬜ Not Started | [[Phase-9-Documentation]] |
+| 4 | Drawing Tools | ✅ Completed | [[Phase-4-Tools]] |
+| 5 | State Management | ✅ Completed | [[Phase-5-State]] |
+| 6 | Polish | 🔄 In Progress | [[Phase-6-Polish]] |
+| 7 | Documentation | ⬜ Not Started | [[Phase-7-Documentation]] |
 
 ## Project Structure (Target)
 
@@ -50,10 +52,10 @@ DrawingBoard/
 
 ## Success Criteria
 
-- [ ] `npm start` runs both server and client
-- [ ] React app loads at localhost:5173
-- [ ] Express API runs at localhost:3000
-- [ ] Drawing works in React canvas component
+- [x] `npm start` runs both server and client
+- [x] React app loads at localhost:5173
+- [x] Express API runs at localhost:3000
+- [x] Drawing works in React canvas component
 - [ ] Brush size and color can be changed
 - [ ] Undo/redo works
 - [ ] Strokes persist via API

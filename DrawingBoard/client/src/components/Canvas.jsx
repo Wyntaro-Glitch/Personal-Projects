@@ -1,42 +1,31 @@
-import { useRef, useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import useCanvas from '../hooks/useCanvas';
 
-export default function Canvas() {
-  const canvasRef = useRef(null);
-  const [isDrawing, setIsDrawing] = useState(false);
+export default function Canvas({ brushSize, color, isEraser, strokes, onStrokesChange }) {
+  const {
+    canvasRef,
+    startDrawing,
+    draw,
+    stopDrawing,
+    redrawCanvas
+  } = useCanvas(strokes, onStrokesChange);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    canvas.width = 800;
-    canvas.height = 600;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-  }, []);
+    if (canvas) {
+      canvas.width = 800;
+      canvas.height = 600;
+    }
+  }, [canvasRef]);
 
-  const startDrawing = (e) => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    ctx.beginPath();
-    ctx.moveTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
-    setIsDrawing(true);
-  };
-
-  const draw = (e) => {
-    if (!isDrawing) return;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    ctx.lineTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
-    ctx.stroke();
-  };
-
-  const stopDrawing = () => {
-    setIsDrawing(false);
-  };
+  useEffect(() => {
+    redrawCanvas(strokes);
+  }, [strokes, redrawCanvas]);
 
   return (
     <canvas
       ref={canvasRef}
-      onMouseDown={startDrawing}
+      onMouseDown={(e) => startDrawing(e, brushSize, color, isEraser)}
       onMouseMove={draw}
       onMouseUp={stopDrawing}
       onMouseLeave={stopDrawing}

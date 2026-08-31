@@ -1,12 +1,12 @@
-# Phase 4: Drawing Tools
+# Phase 4: Drawing Tools (React)
 
-> **Status:** ⬜ Not Started  
+> **Status:** ✅ Completed  
 > **Priority:** Medium  
-> **Depends On:** [[Phase-3-Canvas]]
+> **Depends On:** [[Phase-3-React-Canvas]]
 
 ## Objective
 
-Add configurable drawing tools.
+Add configurable drawing tools using React state.
 
 ## Why This Matters
 
@@ -14,23 +14,46 @@ Makes the canvas usable beyond basic black lines - real drawing apps need these 
 
 ## Deliverables
 
-- [ ] Brush size slider
-- [ ] Color picker input
-- [ ] Eraser mode
-- [ ] Tool selection UI
+- [x] Brush size slider
+- [x] Color picker input
+- [x] Eraser mode
+- [x] Tool selection UI
 
 ## Tasks
 
-### 1. Add HTML Controls
+### 1. Create Toolbar Component
 
-```html
-<div id="toolbar">
-  <input type="range" id="brushSize" min="1" max="50" value="5">
-  <input type="color" id="colorPicker" value="#000000">
-  <button id="eraserBtn">Eraser</button>
-  <button id="clearBtn">Clear</button>
-</div>
-<canvas id="canvas" width="800" height="600"></canvas>
+Create `client/src/components/Toolbar.jsx`:
+
+```jsx
+export default function Toolbar({ brushSize, setBrushSize, color, setColor, isEraser, setIsEraser, clearCanvas }) {
+  return (
+    <div className="toolbar">
+      <input
+        type="range"
+        min="1"
+        max="50"
+        value={brushSize}
+        onChange={(e) => setBrushSize(Number(e.target.value))}
+      />
+      <input
+        type="color"
+        value={color}
+        onChange={(e) => {
+          setColor(e.target.value);
+          setIsEraser(false);
+        }}
+      />
+      <button
+        className={isEraser ? 'active' : ''}
+        onClick={() => setIsEraser(!isEraser)}
+      >
+        Eraser
+      </button>
+      <button onClick={clearCanvas}>Clear</button>
+    </div>
+  );
+}
 ```
 
 **What this does:**
@@ -41,51 +64,57 @@ Makes the canvas usable beyond basic black lines - real drawing apps need these 
 
 ---
 
-### 2. Style the Toolbar
+### 2. Update Canvas Component with State
 
-```css
-#toolbar {
-  padding: 10px;
-  background: #f0f0f0;
-  margin-bottom: 10px;
+```jsx
+import { useRef, useEffect, useState } from 'react';
+
+export default function Canvas({ brushSize, color, isEraser }) {
+  const canvasRef = useRef(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    canvas.width = 800;
+    canvas.height = 600;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+  }, []);
+
+  const startDrawing = (e) => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    ctx.beginPath();
+    ctx.moveTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
+    ctx.lineWidth = brushSize;
+    ctx.strokeStyle = isEraser ? '#FFFFFF' : color;
+    setIsDrawing(true);
+  };
+
+  const draw = (e) => {
+    if (!isDrawing) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    ctx.lineTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
+    ctx.stroke();
+  };
+
+  const stopDrawing = () => {
+    setIsDrawing(false);
+  };
+
+  return (
+    <canvas
+      ref={canvasRef}
+      onMouseDown={startDrawing}
+      onMouseMove={draw}
+      onMouseUp={stopDrawing}
+      onMouseLeave={stopDrawing}
+      style={{ border: '1px solid #000', cursor: 'crosshair' }}
+    />
+  );
 }
-
-#toolbar button {
-  margin: 0 5px;
-  padding: 5px 10px;
-}
-```
-
-**What this does:**
-- Separates controls from canvas visually
-- Makes UI look organized
-
----
-
-### 3. Bind Controls to Canvas Context
-
-```javascript
-const brushSize = document.getElementById('brushSize');
-const colorPicker = document.getElementById('colorPicker');
-const eraserBtn = document.getElementById('eraserBtn');
-
-let currentColor = '#000000';
-let isEraser = false;
-
-brushSize.addEventListener('input', (e) => {
-  ctx.lineWidth = e.target.value;
-});
-
-colorPicker.addEventListener('input', (e) => {
-  currentColor = e.target.value;
-  isEraser = false;
-  eraserBtn.classList.remove('active');
-});
-
-eraserBtn.addEventListener('click', () => {
-  isEraser = !isEraser;
-  eraserBtn.classList.toggle('active');
-});
 ```
 
 **What each part does:**
@@ -93,69 +122,90 @@ eraserBtn.addEventListener('click', () => {
 | Control | Property Changed | Effect |
 |---------|------------------|--------|
 | Brush size slider | `ctx.lineWidth` | Thicker or thinner strokes |
-| Color picker | `currentColor` variable | Changes stroke color |
+| Color picker | `ctx.strokeStyle` | Changes stroke color |
 | Eraser button | `isEraser` flag | Toggles eraser mode |
 
 ---
 
-### 4. Update Drawing to Use Controls
+### 3. Update App.jsx
 
-```javascript
-canvas.addEventListener('mousedown', (e) => {
-  drawing = true;
-  ctx.beginPath();
-  ctx.moveTo(e.offsetX, e.offsetY);
-  
-  // Set color for this stroke
-  if (isEraser) {
-    ctx.strokeStyle = '#FFFFFF'; // white for eraser
-  } else {
-    ctx.strokeStyle = currentColor;
-  }
-});
+```jsx
+import { useState } from 'react';
+import Canvas from './components/Canvas';
+import Toolbar from './components/Toolbar';
 
-// In mousemove:
-canvas.addEventListener('mousemove', (e) => {
-  if (!drawing) return;
-  ctx.lineTo(e.offsetX, e.offsetY);
-  ctx.stroke();
-});
+function App() {
+  const [brushSize, setBrushSize] = useState(5);
+  const [color, setColor] = useState('#000000');
+  const [isEraser, setIsEraser] = useState(false);
+
+  const clearCanvas = () => {
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  };
+
+  return (
+    <div className="App">
+      <h1>Drawing Board</h1>
+      <Toolbar
+        brushSize={brushSize}
+        setBrushSize={setBrushSize}
+        color={color}
+        setColor={setColor}
+        isEraser={isEraser}
+        setIsEraser={setIsEraser}
+        clearCanvas={clearCanvas}
+      />
+      <Canvas brushSize={brushSize} color={color} isEraser={isEraser} />
+    </div>
+  );
+}
+
+export default App;
 ```
-
-**What this does:**
-- Applies current color/eraser when stroke starts
-- Each stroke uses the settings active at mousedown
-- Eraser draws white (background color) over existing strokes
 
 ---
 
-### 5. Implement Clear Button
+### 4. Add Styles
 
-```javascript
-const clearBtn = document.getElementById('clearBtn');
+Update `client/src/index.css`:
 
-clearBtn.addEventListener('click', () => {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-});
+```css
+.toolbar {
+  padding: 10px;
+  background: #f0f0f0;
+  margin-bottom: 10px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.toolbar button {
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.toolbar button.active {
+  background: #007bff;
+  color: white;
+}
 ```
-
-**What this does:**
-- `clearRect()` erases entire canvas area
-- Parameters define rectangle to clear (x, y, width, height)
 
 ## Completion Checklist
 
-- [ ] Brush size slider changes line thickness
-- [ ] Color picker changes stroke color
-- [ ] Eraser button toggles eraser mode
-- [ ] Clear button wipes canvas
-- [ ] UI looks clean and organized
+- [x] Brush size slider changes line thickness
+- [x] Color picker changes stroke color
+- [x] Eraser button toggles eraser mode
+- [x] Clear button wipes canvas
+- [x] UI looks clean and organized
 
 ## Verification
 
-1. Start server: `node server.js`
-2. Open `http://localhost:3000/index.html`
-3. Test each control:
+1. Start server: `cd server && npm start`
+2. Start client: `cd client && npm run dev`
+3. Open `http://localhost:5173`
+4. Test each control:
    - Change slider → draw → thickness changes
    - Pick color → draw → color changes
    - Click eraser → draw → removes strokes
@@ -165,11 +215,11 @@ clearBtn.addEventListener('click', () => {
 
 | Issue | Cause | Solution |
 |-------|-------|----------|
-| Slider doesn't affect size | Not updating `lineWidth` | Check `ctx.lineWidth` assignment |
-| Color doesn't change | Not updating `strokeStyle` | Verify event listener fires |
+| Slider doesn't affect size | Not updating lineWidth | Check brushSize state passed to Canvas |
+| Color doesn't change | Not updating strokeStyle | Verify color state passed to Canvas |
 | Eraser doesn't work | Drawing transparent | Use white color, not transparent |
-| Clear doesn't work | Wrong canvas dimensions | Check `clearRect` parameters |
+| Clear doesn't work | Wrong canvas reference | Use document.querySelector |
 
 ## Next Phase
 
-→ [[Phase-5-State]]
+→ [[Phase-5-State-React]]

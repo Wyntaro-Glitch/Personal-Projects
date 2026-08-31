@@ -1,6 +1,8 @@
 # Recommendations
 
 > Best practices and improvements to apply before or during development
+> 
+> **Last Updated:** 2026-08-31
 
 ## High Priority (Do Before Phase 2)
 

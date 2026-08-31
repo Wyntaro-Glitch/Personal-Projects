@@ -1,6 +1,8 @@
 # Issue Backtracking Guide
 
 > Quick reference for debugging issues by phase
+> 
+> **Last Updated:** 2026-08-31
 
 ## Symptoms → Likely Phase
 
