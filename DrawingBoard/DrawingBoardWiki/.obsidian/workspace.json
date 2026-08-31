@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Recommendations.md",
+                "file": "Phase-2-Server.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Recommendations"
+              "title": "Phase-2-Server"
             }
           }
         ]
@@ -99,7 +99,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Recommendations.md",
+                "file": "Phase-2-Server.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -118,7 +118,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Recommendations.md",
+                "file": "Phase-2-Server.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
@@ -161,7 +161,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Recommendations.md",
+                "file": "Phase-2-Server.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -190,11 +190,11 @@
   },
   "active": "1f886fd59f3debdf",
   "lastOpenFiles": [
-    "Home.md",
-    "Phase-2-Server.md",
-    "Recommendations.md",
     "Phase-1-Setup.md",
+    "Phase-2-Server.md",
+    "Home.md",
     "Progress.md",
+    "Recommendations.md",
     "Issue-Backtracking.md",
     "Phase-9-Documentation.md"
   ]

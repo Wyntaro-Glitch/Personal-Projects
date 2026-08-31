@@ -1,6 +1,6 @@
 # Phase 1: Project Setup
 
-> **Status:** ⬜ Not Started  
+> **Status:** ✅ Completed  
 > **Priority:** High  
 > **Depends On:** None
 
@@ -16,7 +16,9 @@ Establishes foundation and dependency management so all code runs correctly. Wit
 
 - [x] `package.json` with project metadata
 - [x] `express` dependency installed
-- [ ] Folder structure created
+- [x] `.gitignore` created
+- [x] `.env` file created
+- [x] `dotenv` installed
 
 ## Tasks
 
@@ -77,8 +79,10 @@ mkdir public
 
 - [x] `package.json` exists
 - [x] `node_modules/` folder exists
-- [x] `public/` folder exists
+- [x] `.gitignore` created
+- [x] `.env` file created
 - [x] `npm list express` shows express installed
+- [x] `node_modules` removed from git tracking
 
 ## Verification Command
 
