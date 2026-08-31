@@ -1,6 +1,6 @@
 # Phase 2: Server Layer
 
-> **Status:** ⬜ Not Started  
+> **Status:** ✅ Completed  
 > **Priority:** High  
 > **Depends On:** [[Phase-1-Setup]]
 
@@ -14,9 +14,9 @@ The server must serve your HTML/JS files to the browser and provide API endpoint
 
 ## Deliverables
 
-- [ ] Express server listening on port 3000
-- [ ] Static file serving from `public/`
-- [ ] `node server.js` launches without errors
+- [x] Express server listening on port 3000
+- [x] Static file serving from `public/`
+- [x] `node server.js` launches without errors
 
 ## Tasks
 
@@ -108,10 +108,10 @@ DrawingBoard/
 
 ## Completion Checklist
 
-- [ ] `server.js` exists
-- [ ] `node server.js` starts without errors
-- [ ] Console shows "Server running at http://localhost:3000"
-- [ ] Browser can connect to localhost:3000 (shows directory listing or 404)
+- [x] `server.js` exists
+- [x] `node server.js` starts without errors
+- [x] Console shows "Server running at http://localhost:3000"
+- [x] Browser can connect to localhost:3000 (shows page)
 
 ## Verification Commands
 

@@ -14,7 +14,7 @@
 |-------|------|--------|------|
 | 1 | Project Setup | ✅ Completed | [[Phase-1-Setup]] |
 | 2 | Server Layer | ✅ Completed | [[Phase-2-Server]] |
-| 3 | Canvas Frontend | ⬜ Not Started | [[Phase-3-Canvas]] |
+| 3 | Canvas Frontend | 🔄 In Progress | [[Phase-3-Canvas]] |
 | 4 | Drawing Tools | ⬜ Not Started | [[Phase-4-Tools]] |
 | 5 | State Management | ⬜ Not Started | [[Phase-5-State]] |
 | 6 | Polish | ⬜ Not Started | [[Phase-6-Polish]] |
