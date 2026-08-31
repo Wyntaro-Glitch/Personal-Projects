@@ -15,6 +15,8 @@
 node_modules/
 .env
 *.log
+dist/
+.vite/
 ```
 
 2. Remove from git tracking:
@@ -27,13 +29,23 @@ git commit -m "Remove node_modules from tracking"
 
 ---
 
-### 2. Update package.json main field
+### 2. Separate Server and Client Packages
 
-**Issue:** `"main": "index.js"` but file will be `server.js`.
+**Why:** Clean separation of concerns, independent dependencies.
 
-**Fix:** Change to `"main": "server.js"` in `package.json`.
-
-**Why:** Correct entry point for Node.js.
+**Structure:**
+```
+DrawingBoard/
+├── server/
+│   ├── server.js
+│   ├── package.json
+│   └── node_modules/
+├── client/
+│   ├── src/
+│   ├── package.json
+│   └── node_modules/
+└── .gitignore
+```
 
 ---
 
@@ -43,33 +55,34 @@ git commit -m "Remove node_modules from tracking"
 
 **Why:** Avoids hardcoding, makes deployment easier.
 
-**Fix:** Create `DrawingBoard/.env`:
+**Fix:** Create `DrawingBoard/server/.env`:
 ```
 PORT=3000
 ```
 
-In `server.js`:
+In `server/server.js`:
 ```javascript
 const PORT = process.env.PORT || 3000;
 ```
 
 Install dotenv:
 ```bash
+cd server
 npm install dotenv
 ```
 
-Add to top of `server.js`:
+Add to top of `server/server.js`:
 ```javascript
 require('dotenv').config();
 ```
 
 ---
 
-### 4. Add Start Script to package.json
+### 4. Add Start Scripts
 
-**Why:** Run server with `npm start` instead of `node server.js`.
+**Why:** Run server and client with single commands.
 
-**Fix:** Add to `scripts` in `package.json`:
+**Server `package.json`:**
 ```json
 {
   "scripts": {
@@ -79,25 +92,37 @@ require('dotenv').config();
 }
 ```
 
+**Client `package.json`:**
+```json
+{
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  }
+}
+```
+
 ---
 
-### 5. Separate Frontend Files
+### 5. Configure Vite Proxy
 
-**Why:** Better organization as project grows.
+**Why:** Avoid CORS issues during development.
 
-**Structure:**
-```
-DrawingBoard/
-├── server.js
-├── package.json
-├── .gitignore
-├── .env
-└── public/
-    ├── index.html
-    ├── css/
-    │   └── style.css
-    └── js/
-        └── app.js
+**In `client/vite.config.js`:**
+```javascript
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: 5173,
+    proxy: {
+      '/api': 'http://localhost:3000'
+    }
+  }
+});
 ```
 
 ---
@@ -108,7 +133,7 @@ DrawingBoard/
 
 **Why:** Graceful handling of port conflicts and crashes.
 
-**In server.js:**
+**In server/server.js:**
 ```javascript
 const server = app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
@@ -124,26 +149,12 @@ server.on('error', (err) => {
 
 ---
 
-### 7. Add CORS for Development
-
-**Why:** If you ever add a frontend framework or API calls.
-
-```bash
-npm install cors
-```
-
-```javascript
-const cors = require('cors');
-app.use(cors());
-```
-
----
-
-### 8. Add Morgan for Logging
+### 7. Add Morgan for Logging
 
 **Why:** See request logs in terminal for debugging.
 
 ```bash
+cd server
 npm install morgan
 ```
 
@@ -154,17 +165,28 @@ app.use(morgan('dev'));
 
 ---
 
+### 8. Add React DevTools
+
+**Why:** Debug React component state and props.
+
+Install browser extension:
+- Chrome: React Developer Tools
+- Firefox: React Developer Tools
+
+---
+
 ## Checklist
 
 Apply these before moving to Phase 2:
 
-- [ ] Create `.gitignore`
+- [ ] Create `.gitignore` with React patterns
 - [ ] Remove `node_modules` from git
-- [ ] Update `package.json` main field
-- [ ] Add start script to `package.json`
+- [ ] Separate `server/` and `client/` folders
+- [ ] Add start scripts to both packages
 
 Optional (recommended):
 
-- [ ] Add `.env` file
-- [ ] Separate frontend files into `css/` and `js/`
+- [ ] Add `.env` file for server
+- [ ] Configure Vite proxy
 - [ ] Add error handling to server
+- [ ] Install React DevTools
