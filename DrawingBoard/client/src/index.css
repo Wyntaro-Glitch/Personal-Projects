@@ -71,3 +71,40 @@ canvas {
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
+
+.main-content {
+  display: flex;
+  gap: 20px;
+}
+
+.canvas-container {
+  position: relative;
+  flex: 1;
+}
+
+.remote-cursor {
+  position: absolute;
+  pointer-events: none;
+}
+
+.users-panel {
+  width: 200px;
+  padding: 10px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.users-panel h3 {
+  margin: 0 0 10px 0;
+}
+
+.users-panel ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.users-panel li {
+  padding: 5px 0;
+}

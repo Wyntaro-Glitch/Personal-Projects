@@ -8,6 +8,21 @@
 
 Original plan used vanilla HTML5 Canvas. Now using React + Vite for frontend.
 
+## Phase Structure Change
+
+**Original:** 7 phases (1-7)  
+**New:** 2 main phases with sub-phases
+
+| Original | New |
+|----------|-----|
+| Phase 1 | Phase 1.1 (Setup React) |
+| Phase 2 | Phase 1.2 (Server API) |
+| Phase 3 | Phase 1.3 (React Canvas) |
+| Phase 4 | Phase 1.4 (Tools) |
+| Phase 5 | Phase 1.5 (State) |
+| Phase 6 | Phase 1.6 (Polish) |
+| Phase 7 | Phase 2 (Socket + Cursors) |
+
 ## What Stays the Same
 
 | Item | Status |
@@ -92,9 +107,11 @@ dist/
 - express
 - cors (for cross-origin requests)
 - dotenv
+- socket.io (Phase 2.1)
 
 ### Client (`client/package.json`)
 - react
 - react-dom
 - vite
 - @vitejs/plugin-react
+- socket.io-client (Phase 2.2)

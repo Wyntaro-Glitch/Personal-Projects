@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
 import Canvas from './components/Canvas';
 import Toolbar from './components/Toolbar';
+import Users from './components/Users';
 import useStrokeHistory from './hooks/useStrokeHistory';
 import useKeyboardShortcuts from './hooks/useKeyboardShortcuts';
-import { saveStrokes, loadStrokes } from './api/strokes';
+import useSocket from './hooks/useSocket';
+import { saveStrokes } from './api/strokes';
 
 function App() {
   const [brushSize, setBrushSize] = useState(5);
   const [color, setColor] = useState('#000000');
   const [isEraser, setIsEraser] = useState(false);
+  const [remoteCursors, setRemoteCursors] = useState({});
 
   const {
     strokes,
@@ -21,21 +24,59 @@ function App() {
     canRedo
   } = useStrokeHistory();
 
-  // Keyboard shortcuts
+  const {
+    socket,
+    connected,
+    emitStroke,
+    emitCursor,
+    onReceiveStroke,
+    onLoadStrokes,
+    onCursorUpdate,
+    onUserLeft
+  } = useSocket();
+
   useKeyboardShortcuts(undo, redo, canUndo, canRedo);
 
-  // Load strokes on mount
+  // Load strokes from socket on connect
   useEffect(() => {
-    async function init() {
-      const savedStrokes = await loadStrokes();
-      if (savedStrokes.length > 0) {
-        setInitialStrokes(savedStrokes);
-      }
-    }
-    init();
-  }, [setInitialStrokes]);
+    const cleanup = onLoadStrokes((loadedStrokes) => {
+      setInitialStrokes(loadedStrokes);
+    });
+    return cleanup;
+  }, [onLoadStrokes, setInitialStrokes]);
 
-  // Save strokes when they change
+  // Listen for new strokes from other users
+  useEffect(() => {
+    const cleanup = onReceiveStroke((stroke) => {
+      addToHistory(stroke);
+    });
+    return cleanup;
+  }, [onReceiveStroke, addToHistory]);
+
+  // Listen for cursor updates
+  useEffect(() => {
+    const cleanup = onCursorUpdate((data) => {
+      setRemoteCursors(prev => ({
+        ...prev,
+        [data.userId]: { x: data.x, y: data.y, color: data.color }
+      }));
+    });
+    return cleanup;
+  }, [onCursorUpdate]);
+
+  // Handle user disconnect
+  useEffect(() => {
+    const cleanup = onUserLeft((userId) => {
+      setRemoteCursors(prev => {
+        const newCursors = { ...prev };
+        delete newCursors[userId];
+        return newCursors;
+      });
+    });
+    return cleanup;
+  }, [onUserLeft]);
+
+  // Save strokes to server
   useEffect(() => {
     if (strokes.length > 0) {
       saveStrokes(strokes);
@@ -44,6 +85,11 @@ function App() {
 
   const handleStrokesChange = (stroke) => {
     addToHistory(stroke);
+    emitStroke(stroke);
+  };
+
+  const handleCursorMove = (data) => {
+    emitCursor(data);
   };
 
   const clearCanvas = () => {
@@ -55,7 +101,7 @@ function App() {
 
   return (
     <div className="App">
-      <h1>Drawing Board</h1>
+      <h1>Drawing Board {connected ? '🟢' : '🔴'}</h1>
       <Toolbar
         brushSize={brushSize}
         setBrushSize={setBrushSize}
@@ -70,13 +116,18 @@ function App() {
         canRedo={canRedo}
         downloadPNG={() => {}}
       />
-      <Canvas
-        brushSize={brushSize}
-        color={color}
-        isEraser={isEraser}
-        strokes={strokes}
-        onStrokesChange={handleStrokesChange}
-      />
+      <div className="main-content">
+        <Canvas
+          brushSize={brushSize}
+          color={color}
+          isEraser={isEraser}
+          strokes={strokes}
+          onStrokesChange={handleStrokesChange}
+          remoteCursors={remoteCursors}
+          onCursorMove={handleCursorMove}
+        />
+        <Users users={[]} currentUserId={socket?.id} />
+      </div>
     </div>
   );
 }
