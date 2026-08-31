@@ -21,8 +21,8 @@
 |-------|------|--------|------|
 | 1 | Project Setup (React) | ✅ Completed | [[Phase-1-Setup-React]] |
 | 2 | Server (API Only) | ✅ Completed | [[Phase-2-Server-API]] |
-| 3 | React App + Canvas | 🔄 In Progress | [[Phase-3-React-Canvas]] |
-| 4 | Drawing Tools | ⬜ Not Started | [[Phase-4-Tools]] |
+| 3 | React App + Canvas | ✅ Completed | [[Phase-3-React-Canvas]] |
+| 4 | Drawing Tools | 🔄 In Progress | [[Phase-4-Tools]] |
 | 5 | State Management | ⬜ Not Started | [[Phase-5-State]] |
 | 6 | Polish | ⬜ Not Started | [[Phase-6-Polish]] |
 | 7 | Documentation | ⬜ Not Started | [[Phase-9-Documentation]] |
