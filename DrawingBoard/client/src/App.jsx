@@ -7,11 +7,13 @@ import Login from './components/Login';
 import Register from './components/Register';
 import GuestLogin from './components/GuestLogin';
 import ProtectedRoute from './components/ProtectedRoute';
+import RoomList from './components/RoomList';
+import CreateRoom from './components/CreateRoom';
+import JoinRoom from './components/JoinRoom';
 import useStrokeHistory from './hooks/useStrokeHistory';
 import useKeyboardShortcuts from './hooks/useKeyboardShortcuts';
 import useSocket from './hooks/useSocket';
 import { useAuth } from './context/AuthContext';
-import { saveStrokes } from './api/strokes';
 import { useEffect } from 'react';
 
 function DrawingApp() {
@@ -20,6 +22,8 @@ function DrawingApp() {
   const [isEraser, setIsEraser] = useState(false);
   const [remoteCursors, setRemoteCursors] = useState({});
   const [users, setUsers] = useState([]);
+  const [currentRoom, setCurrentRoom] = useState(null);
+  const [view, setView] = useState('rooms'); // 'rooms', 'create', 'join', 'drawing'
   
   const { user, logout } = useAuth();
 
@@ -47,6 +51,34 @@ function DrawingApp() {
   } = useSocket(user);
 
   useKeyboardShortcuts(undo, redo, canUndo, canRedo);
+
+  // Join socket room when entering a room
+  useEffect(() => {
+    if (currentRoom && socket) {
+      // Clear canvas first
+      const canvas = document.querySelector('canvas');
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+      clearHistory();
+      
+      socket.emit('join-room', currentRoom._id);
+    }
+    
+    return () => {
+      if (currentRoom && socket) {
+        socket.emit('leave-room', currentRoom._id);
+        // Clear strokes when leaving room
+        clearHistory();
+        const canvas = document.querySelector('canvas');
+        if (canvas) {
+          const ctx = canvas.getContext('2d');
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+    };
+  }, [currentRoom?._id, socket]);
 
   // Load strokes from socket on connect
   useEffect(() => {
@@ -95,13 +127,6 @@ function DrawingApp() {
     return cleanup;
   }, [onUsersUpdate]);
 
-  // Save strokes to server
-  useEffect(() => {
-    if (strokes.length > 0) {
-      saveStrokes(strokes);
-    }
-  }, [strokes]);
-
   const handleStrokesChange = (stroke) => {
     addToHistory(stroke);
     emitStroke(stroke);
@@ -124,10 +149,82 @@ function DrawingApp() {
     }
   };
 
+  const handleSelectRoom = (room) => {
+    setCurrentRoom(room);
+    setView('drawing');
+  };
+
+  const handleCreateRoom = (room) => {
+    setCurrentRoom(room);
+    setView('drawing');
+  };
+
+  const handleJoinRoom = (room) => {
+    setCurrentRoom(room);
+    setView('drawing');
+  };
+
+  const handleBackToRooms = () => {
+    setCurrentRoom(null);
+    setView('rooms');
+  };
+
+  // Render based on current view
+  if (view === 'create') {
+    return (
+      <div className="App">
+        <div className="header">
+          <h1>Drawing Board</h1>
+        </div>
+        <CreateRoom 
+          onCreated={handleCreateRoom}
+          onCancel={() => setView('rooms')}
+        />
+      </div>
+    );
+  }
+
+  if (view === 'join') {
+    return (
+      <div className="App">
+        <div className="header">
+          <h1>Drawing Board</h1>
+        </div>
+        <JoinRoom 
+          onJoined={handleJoinRoom}
+          onCancel={() => setView('rooms')}
+        />
+      </div>
+    );
+  }
+
+  if (view === 'rooms' || !currentRoom) {
+    return (
+      <div className="App">
+        <div className="header">
+          <h1>Drawing Board {connected ? '🟢' : '🔴'}</h1>
+          <div className="user-info">
+            <span>{user?.username || 'Guest'}</span>
+            <button className="logout-btn" onClick={handleLogout}>Logout</button>
+          </div>
+        </div>
+        <RoomList 
+          onSelectRoom={handleSelectRoom}
+          onCreateRoom={() => setView('create')}
+          onJoinRoom={() => setView('join')}
+        />
+      </div>
+    );
+  }
+
+  // Drawing view
   return (
     <div className="App">
       <div className="header">
-        <h1>Drawing Board {connected ? '🟢' : '🔴'}</h1>
+        <button className="back-btn" onClick={handleBackToRooms}>
+          ← Back to Rooms
+        </button>
+        <h1>{currentRoom.name} ({currentRoom.code})</h1>
         <div className="user-info">
           <span>{user?.username || 'Guest'}</span>
           <button className="logout-btn" onClick={handleLogout}>Logout</button>
@@ -164,8 +261,8 @@ function DrawingApp() {
 }
 
 function App() {
-  const { user, loginUser, logout } = useAuth();
-  const [authView, setAuthView] = useState('login'); // 'login', 'register', 'guest'
+  const { user } = useAuth();
+  const [authView, setAuthView] = useState('login');
 
   const renderAuthForm = () => {
     if (user) return <Navigate to="/" />;

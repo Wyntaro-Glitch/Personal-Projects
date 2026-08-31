@@ -57,11 +57,21 @@
 
 | Sub-Phase | Name | Status | Link |
 |-----------|------|--------|------|
-| 4.1 | Room Model | ⬜ Not Started | [[Phase-4-Rooms/Phase-4.1-Room-Model]] |
-| 4.2 | Room API | ⬜ Not Started | [[Phase-4-Rooms/Phase-4.2-Room-API]] |
-| 4.3 | Room UI | ⬜ Not Started | [[Phase-4-Rooms/Phase-4.3-Room-UI]] |
-| 4.4 | Socket Rooms | ⬜ Not Started | [[Phase-4-Rooms/Phase-4.4-Socket-Rooms]] |
-| 4.5 | Room Drawing | ⬜ Not Started | [[Phase-4-Rooms/Phase-4.5-Room-Drawing]] |
+| 4.1 | Room Model | ✅ Completed | [[Phase-4-Rooms/Phase-4.1-Room-Model]] |
+| 4.2 | Room API | ✅ Completed | [[Phase-4-Rooms/Phase-4.2-Room-API]] |
+| 4.3 | Room UI | ✅ Completed | [[Phase-4-Rooms/Phase-4.3-Room-UI]] |
+| 4.4 | Socket Rooms | ✅ Completed | [[Phase-4-Rooms/Phase-4.4-Socket-Rooms]] |
+| 4.5 | Room Drawing | ✅ Completed | [[Phase-4-Rooms/Phase-4.5-Room-Drawing]] |
+
+### Phase 5: Drawing Tools
+
+| Sub-Phase | Name | Status | Link |
+|-----------|------|--------|------|
+| 5.1 | Shape Tools | ⬜ Not Started | [[Phase-5-Drawing-Tools/Phase-5.1-Shape-Tools]] |
+| 5.2 | Fill Bucket | ⬜ Not Started | [[Phase-5-Drawing-Tools/Phase-5.2-Fill-Bucket]] |
+| 5.3 | Text Tool | ⬜ Not Started | [[Phase-5-Drawing-Tools/Phase-5.3-Text-Tool]] |
+| 5.4 | Tool UI | ⬜ Not Started | [[Phase-5-Drawing-Tools/Phase-5.4-Tool-UI]] |
+| 5.5 | Broadcast Tools | ⬜ Not Started | [[Phase-5-Drawing-Tools/Phase-5.5-Broadcast-Tools]] |
 
 ## Project Structure (Target)
 

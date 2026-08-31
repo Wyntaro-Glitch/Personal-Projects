@@ -44,11 +44,21 @@
 
 | Sub-Phase | Name | Status | Notes |
 |-----------|------|--------|-------|
-| 4.1 | Room Model | ⬜ Not Started | MongoDB Room schema |
-| 4.2 | Room API | ⬜ Not Started | Create/Join/Leave endpoints |
-| 4.3 | Room UI | ⬜ Not Started | Room components |
-| 4.4 | Socket Rooms | ⬜ Not Started | Socket.io room isolation |
-| 4.5 | Room Drawing | ⬜ Not Started | Room-aware drawing |
+| 4.1 | Room Model | ✅ Completed | MongoDB Room schema |
+| 4.2 | Room API | ✅ Completed | Create/Join/Leave/Delete endpoints |
+| 4.3 | Room UI | ✅ Completed | Room components |
+| 4.4 | Socket Rooms | ✅ Completed | Socket.io room isolation |
+| 4.5 | Room Drawing | ✅ Completed | Room-aware drawing with saved strokes |
+
+### Phase 5: Drawing Tools
+
+| Sub-Phase | Name | Status | Notes |
+|-----------|------|--------|-------|
+| 5.1 | Shape Tools | ⬜ Not Started | Rectangle, circle, line, arrow |
+| 5.2 | Fill Bucket | ⬜ Not Started | Flood fill tool |
+| 5.3 | Text Tool | ⬜ Not Started | Text annotations |
+| 5.4 | Tool UI | ⬜ Not Started | Tool selection interface |
+| 5.5 | Broadcast Tools | ⬜ Not Started | Sync tools to all users |
 
 ## Status Legend
 

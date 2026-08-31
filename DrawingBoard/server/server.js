@@ -5,13 +5,14 @@ const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const { Server } = require('socket.io');
 const authRoutes = require('./routes/auth');
+const roomRoutes = require('./routes/rooms');
+const Room = require('./models/Room');
 require('dotenv').config();
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)
   .then(async () => {
     console.log('Connected to MongoDB');
-    // Clean up any leftover guest accounts on server start
     await cleanupGuestAccounts();
   })
   .catch(err => console.error('MongoDB connection error:', err));
@@ -33,12 +34,10 @@ app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/rooms', roomRoutes);
 
-// In-memory storage
-let savedStrokes = [];
-let connectedUsers = [];
-
-// Track guest users by socket ID
+// Track connected users per room
+const roomUsers = new Map();
 const guestUsers = new Map();
 
 // Clean up all guest accounts on server start
@@ -65,53 +64,99 @@ async function deleteGuestAccount(userId) {
   }
 }
 
-// API Endpoints
-app.get('/strokes', (req, res) => {
-  res.json(savedStrokes);
-});
-
-app.post('/strokes', (req, res) => {
-  savedStrokes = req.body;
-  res.json({ success: true });
-});
-
 // Socket.io Connection
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
+  let currentRoomId = null;
+  let currentUserInfo = { id: socket.id, username: 'Guest', color: getRandomColor() };
+
   // Listen for user info after connection
   socket.on('user-info', (userInfo) => {
-    // Update user with display name
-    const userIndex = connectedUsers.findIndex(u => u.id === socket.id);
-    if (userIndex !== -1) {
-      connectedUsers[userIndex].username = userInfo.username;
-      connectedUsers[userIndex].isGuest = userInfo.isGuest || false;
-    }
+    currentUserInfo.username = userInfo.username;
+    currentUserInfo.isGuest = userInfo.isGuest || false;
+    currentUserInfo.userId = userInfo.userId;
+    
     if (userInfo.isGuest) {
       guestUsers.set(socket.id, userInfo.userId);
     }
-    io.emit('users-update', connectedUsers);
   });
 
-  // Add user to connected list
-  connectedUsers.push({ id: socket.id, color: getRandomColor(), username: 'Guest' });
-  io.emit('users-update', connectedUsers);
+  // Join a room
+  socket.on('join-room', async (roomId) => {
+    // Leave previous room if any
+    if (currentRoomId) {
+      socket.leave(currentRoomId);
+      const prevUsers = roomUsers.get(currentRoomId) || [];
+      roomUsers.set(currentRoomId, prevUsers.filter(u => u.id !== socket.id));
+      io.to(currentRoomId).emit('users-update', roomUsers.get(currentRoomId) || []);
+    }
 
-  // Send existing strokes to new user
-  socket.emit('load-strokes', savedStrokes);
+    // Join new room
+    socket.join(roomId);
+    currentRoomId = roomId;
 
-  // Broadcast new stroke to all users
-  socket.on('new-stroke', (stroke) => {
-    savedStrokes.push(stroke);
-    socket.broadcast.emit('receive-stroke', stroke);
+    // Add user to room
+    if (!roomUsers.has(roomId)) {
+      roomUsers.set(roomId, []);
+    }
+    const users = roomUsers.get(roomId);
+    if (!users.find(u => u.id === socket.id)) {
+      users.push(currentUserInfo);
+    }
+
+    // Notify room
+    io.to(roomId).emit('users-update', users);
+
+    // Load room strokes from database
+    try {
+      const room = await Room.findById(roomId);
+      if (room) {
+        socket.emit('load-strokes', room.strokes || []);
+      }
+    } catch (err) {
+      console.error('Error loading room strokes:', err);
+    }
+
+    console.log(`User ${socket.id} joined room ${roomId}`);
   });
 
-  // Broadcast cursor position
+  // Leave room
+  socket.on('leave-room', (roomId) => {
+    socket.leave(roomId);
+    const users = roomUsers.get(roomId) || [];
+    roomUsers.set(roomId, users.filter(u => u.id !== socket.id));
+    io.to(roomId).emit('users-update', roomUsers.get(roomId) || []);
+    io.to(roomId).emit('user-left', socket.id);
+    currentRoomId = null;
+    console.log(`User ${socket.id} left room ${roomId}`);
+  });
+
+  // Broadcast new stroke to room only
+  socket.on('new-stroke', async (stroke) => {
+    if (currentRoomId) {
+      // Save stroke to database
+      try {
+        await Room.findByIdAndUpdate(currentRoomId, {
+          $push: { strokes: stroke }
+        });
+      } catch (err) {
+        console.error('Error saving stroke:', err);
+      }
+      
+      // Broadcast to room
+      socket.to(currentRoomId).emit('receive-stroke', stroke);
+    }
+  });
+
+  // Broadcast cursor position to room only
   socket.on('cursor-move', (data) => {
-    socket.broadcast.emit('cursor-update', {
-      userId: socket.id,
-      ...data
-    });
+    if (currentRoomId) {
+      socket.to(currentRoomId).emit('cursor-update', {
+        userId: socket.id,
+        ...data
+      });
+    }
   });
 
   socket.on('disconnect', async () => {
@@ -124,9 +169,13 @@ io.on('connection', (socket) => {
       guestUsers.delete(socket.id);
     }
     
-    connectedUsers = connectedUsers.filter(u => u.id !== socket.id);
-    io.emit('users-update', connectedUsers);
-    io.emit('user-left', socket.id);
+    // Remove from room
+    if (currentRoomId) {
+      const users = roomUsers.get(currentRoomId) || [];
+      roomUsers.set(currentRoomId, users.filter(u => u.id !== socket.id));
+      io.to(currentRoomId).emit('users-update', roomUsers.get(currentRoomId) || []);
+      io.to(currentRoomId).emit('user-left', socket.id);
+    }
   });
 });
 

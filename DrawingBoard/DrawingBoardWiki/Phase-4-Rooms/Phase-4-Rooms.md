@@ -1,6 +1,6 @@
 # Phase 4: Room Creation
 
-> **Status:** 🔄 In Progress  
+> **Status:** ✅ Completed  
 > **Priority:** High  
 > **Depends On:** [[Phase-3-Auth/Phase-3-Auth]]
 
@@ -25,46 +25,59 @@ server/
 ├── server.js           # Updated with room handling
 ├── models/
 │   ├── User.js         # Existing
-│   └── Room.js         # NEW - Room model
+│   └── Room.js         # Room model
 ├── routes/
 │   ├── auth.js         # Existing
-│   └── rooms.js        # NEW - Room routes
+│   └── rooms.js        # Room routes
 └── package.json
 
 client/src/
 ├── components/
-│   ├── RoomList.jsx    # NEW - Show available rooms
-│   ├── CreateRoom.jsx  # NEW - Create room form
-│   ├── RoomLobby.jsx   # NEW - Room before drawing
-│   └── Canvas.jsx      # Updated - Room-aware
+│   ├── RoomList.jsx    # Show available rooms
+│   ├── CreateRoom.jsx  # Create room form
+│   ├── JoinRoom.jsx    # Join by code
+│   └── Canvas.jsx      # Room-aware
 ├── api/
 │   ├── auth.js         # Existing
-│   └── rooms.js        # NEW - Room API calls
+│   └── rooms.js        # Room API calls
 ├── App.jsx             # Updated with room routes
 └── main.jsx
 ```
 
 ## Deliverables
 
-- [ ] Room model created
-- [ ] Create room endpoint
-- [ ] Join room endpoint
-- [ ] Leave room endpoint
-- [ ] Room list UI
-- [ ] Create room UI
-- [ ] Socket.io room isolation
-- [ ] Room-based drawing
+- [x] Room model created
+- [x] Create room endpoint
+- [x] Join room endpoint
+- [x] Leave room endpoint
+- [x] Delete room endpoint (owner only)
+- [x] Room list UI
+- [x] Create room UI
+- [x] Join by code UI
+- [x] Socket.io room isolation
+- [x] Room-based drawing
+- [x] Strokes saved per room
 
 ## Sub-Phases
 
 | Sub-Phase | Name | Status |
 |-----------|------|--------|
-| 4.1 | Room Model | ⬜ Not Started |
-| 4.2 | Room API | ⬜ Not Started |
-| 4.3 | Room UI | ⬜ Not Started |
-| 4.4 | Socket Rooms | ⬜ Not Started |
-| 4.5 | Room Drawing | ⬜ Not Started |
+| 4.1 | Room Model | ✅ Completed |
+| 4.2 | Room API | ✅ Completed |
+| 4.3 | Room UI | ✅ Completed |
+| 4.4 | Socket Rooms | ✅ Completed |
+| 4.5 | Room Drawing | ✅ Completed |
+
+## Features
+
+- Create private rooms with unique 6-digit codes
+- Join rooms by entering code
+- Leave rooms anytime
+- Owner can delete rooms
+- Strokes saved per room in MongoDB
+- Users isolated per room
+- Canvas cleared when switching rooms
 
 ## Next Phase
 
-→ [[Phase-5-Canvas-Features]]
+→ [[Phase-5-Drawing-Tools/Phase-5-Drawing-Tools]]

@@ -11,10 +11,14 @@
             "id": "1f886fd59f3debdf",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Graph view"
+              "type": "markdown",
+              "state": {
+                "file": "Phase-4-Rooms/Phase-4.1-Room-Model.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Phase-4.1-Room-Model"
             }
           }
         ]
@@ -186,6 +190,13 @@
   },
   "active": "1f886fd59f3debdf",
   "lastOpenFiles": [
+    "Phase-4-Rooms/Phase-4-Rooms.md",
+    "Phase-5-Drawing-Tools/README.md",
+    "Phase-5-Drawing-Tools/Phase-5.5-Broadcast-Tools.md",
+    "Phase-5-Drawing-Tools/Phase-5.4-Tool-UI.md",
+    "Phase-5-Drawing-Tools/Phase-5.3-Text-Tool.md",
+    "Phase-5-Drawing-Tools/Phase-5.2-Fill-Bucket.md",
+    "Phase-5-Drawing-Tools/Phase-5.1-Shape-Tools.md",
     "Phase-5-Drawing-Tools/Phase-5-Drawing-Tools.md",
     "Phase-5-Drawing-Tools",
     "Phase-4-Rooms/README.md",
@@ -194,7 +205,6 @@
     "Phase-4-Rooms/Phase-4.3-Room-UI.md",
     "Phase-4-Rooms/Phase-4.2-Room-API.md",
     "Phase-4-Rooms/Phase-4.1-Room-Model.md",
-    "Phase-4-Rooms/Phase-4-Rooms.md",
     "Phase-3-Auth/Phase-3.5-Protected-Routes.md",
     "Phase-4-Rooms",
     "Phase-3-Auth/Phase-3.4-Auth-UI.md",
@@ -208,13 +218,7 @@
     "Phase-2-Socket+Cursors/Phase-2.1-Socket-Server.md",
     "Phase-3-Auth/README.md",
     "Phase-3-Auth/Phase-3.3-Login.md",
-    "Phase-3-Auth/Phase-3.2-Register.md",
     "Phase-3-Auth",
-    "Back-Tracking/Home.md",
-    "Back-Tracking/Documentation.md",
-    "Back-Tracking/Backtrack-Changes.md",
-    "Back-Tracking/Progress.md",
-    "Phase-1-Server+Canvas/Phase-1.3-React-Canvas.md",
     "Phase-2-Socket",
     "Phase-2-Socket+Cursors",
     "Phase-1-Server+Canvas",
