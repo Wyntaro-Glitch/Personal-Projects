@@ -60,7 +60,6 @@ export default function RoomList({ onSelectRoom, onCreateRoom, onJoinRoom }) {
             <li key={room._id} onClick={() => onSelectRoom(room)}>
               <div className="room-info">
                 <span className="room-name">{room.name}</span>
-                <span className="room-code">{room.code}</span>
               </div>
               <div className="room-meta">
                 <span>{room.members?.length || 0} members</span>

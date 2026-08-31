@@ -4,191 +4,227 @@
 > 
 > **Last Updated:** 2026-08-31
 
-## High Priority (Do Before Phase 2)
+## Completed
 
-### 1. Create .gitignore
+### 1. ✅ Create .gitignore
+- Created with React patterns
+- Removed node_modules from tracking
 
-**Issue:** `node_modules/` is committed to git.
+### 2. ✅ Separate Server and Client Packages
+- Server and client have separate package.json
+- Clean separation of concerns
 
-**Fix:**
+### 3. ✅ Use Environment Variables
+- Created server/.env
+- MongoDB URI and JWT secret configured
 
-1. Create `DrawingBoard/.gitignore`:
-```
-node_modules/
-.env
-*.log
-dist/
-.vite/
-```
+### 4. ✅ Add Start Scripts
+- Server: `npm start`
+- Client: `npm run dev`
 
-2. Remove from git tracking:
-```bash
-git rm -r --cached node_modules
-git commit -m "Remove node_modules from tracking"
-```
+### 5. ✅ Configure Vite Proxy
+- Proxy configured for /api routes
 
-**Why:** Prevents repository bloat, merge conflicts, and slow clones.
+## Applied During Development
 
----
+### 6. ✅ Socket.io Room Isolation
+- Strokes broadcast only to room members
+- Per-room stroke storage in MongoDB
 
-### 2. Separate Server and Client Packages
+### 7. ✅ MongoDB Atlas Integration
+- Cloud database for persistence
+- User and Room models
 
-**Why:** Clean separation of concerns, independent dependencies.
+### 8. ✅ JWT Authentication
+- Username-based login
+- Guest account support
+- Protected routes
 
-**Structure:**
-```
-DrawingBoard/
-├── server/
-│   ├── server.js
-│   ├── package.json
-│   └── node_modules/
-├── client/
-│   ├── src/
-│   ├── package.json
-│   └── node_modules/
-└── .gitignore
-```
+### 9. ✅ React StrictMode Fix
+- Removed StrictMode to prevent socket disconnects
+- Socket lifecycle stabilized
 
----
+### 10. ✅ Collapsible Sidebar
+- Modern UI with collapsible sections
+- Tool grid with icons
+- Users list with colors
 
-## Medium Priority (During Development)
+## Medium Priority (Future Improvements)
 
-### 3. Use Environment Variables for Port
+### 11. Add Error Boundary
+**Why:** Catch React errors gracefully.
 
-**Why:** Avoids hardcoding, makes deployment easier.
-
-**Fix:** Create `DrawingBoard/server/.env`:
-```
-PORT=3000
-```
-
-In `server/server.js`:
-```javascript
-const PORT = process.env.PORT || 3000;
-```
-
-Install dotenv:
-```bash
-cd server
-npm install dotenv
-```
-
-Add to top of `server/server.js`:
-```javascript
-require('dotenv').config();
-```
-
----
-
-### 4. Add Start Scripts
-
-**Why:** Run server and client with single commands.
-
-**Server `package.json`:**
-```json
-{
-  "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+```jsx
+// client/src/components/ErrorBoundary.jsx
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
   }
-}
-```
 
-**Client `package.json`:**
-```json
-{
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
   }
-}
-```
 
----
-
-### 5. Configure Vite Proxy
-
-**Why:** Avoid CORS issues during development.
-
-**In `client/vite.config.js`:**
-```javascript
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    port: 5173,
-    proxy: {
-      '/api': 'http://localhost:3000'
+  render() {
+    if (this.state.hasError) {
+      return <h1>Something went wrong.</h1>;
     }
+    return this.props.children;
   }
-});
+}
 ```
 
----
+### 12. Add Loading States
+**Why:** Better UX during async operations.
 
-## Low Priority (Polish Phase)
+```jsx
+const [loading, setLoading] = useState(false);
 
-### 6. Add Error Handling to Server
-
-**Why:** Graceful handling of port conflicts and crashes.
-
-**In server/server.js:**
-```javascript
-const server = app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-});
-
-server.on('error', (err) => {
-  if (err.code === 'EADDRINUSE') {
-    console.error(`Port ${PORT} is already in use`);
-    process.exit(1);
-  }
-});
+// Show spinner during loading
+{loading && <div className="spinner">Loading...</div>}
 ```
 
----
+### 13. Add Toast Notifications
+**Why:** Non-intrusive feedback.
 
-### 7. Add Morgan for Logging
+```bash
+npm install react-hot-toast
+```
 
-**Why:** See request logs in terminal for debugging.
+### 14. Optimize Canvas Rendering
+**Why:** Better performance with many strokes.
+
+- Use requestAnimationFrame
+- Implement canvas virtualization
+- Batch stroke updates
+
+### 15. Add Image Upload
+**Why:** Allow users to upload reference images.
+
+- Add image upload endpoint
+- Render images on canvas
+- Layer management
+
+## Low Priority (Polish)
+
+### 16. Add Morgan for Logging
+**Why:** Better server logs.
 
 ```bash
 cd server
 npm install morgan
 ```
 
-```javascript
-const morgan = require('morgan');
-app.use(morgan('dev'));
-```
-
----
-
-### 8. Add React DevTools
-
-**Why:** Debug React component state and props.
+### 17. Add React DevTools
+**Why:** Debug React components.
 
 Install browser extension:
 - Chrome: React Developer Tools
 - Firefox: React Developer Tools
 
----
+### 18. Add Unit Tests
+**Why:** Ensure code quality.
+
+```bash
+npm install --save-dev jest @testing-library/react
+```
+
+### 19. Add TypeScript
+**Why:** Better type safety.
+
+```bash
+npm install --save-dev typescript @types/react
+```
+
+### 20. Add ESLint + Prettier
+**Why:** Consistent code style.
+
+```bash
+npm install --save-dev eslint prettier
+```
+
+## Security Recommendations
+
+### 21. Rate Limiting
+**Why:** Prevent abuse.
+
+```bash
+cd server
+npm install express-rate-limit
+```
+
+### 22. Input Validation
+**Why:** Prevent injection attacks.
+
+```bash
+cd server
+npm install express-validator
+```
+
+### 23. CORS Configuration
+**Why:** Restrict cross-origin requests.
+
+Already configured in server.js with specific origin.
+
+### 24. Helmet.js
+**Why:** Security headers.
+
+```bash
+cd server
+npm install helmet
+```
+
+## Performance Recommendations
+
+### 25. Redis for Socket.io
+**Why:** Scale to multiple server instances.
+
+```bash
+cd server
+npm install @socket.io/redis-adapter
+```
+
+### 26. MongoDB Indexing
+**Why:** Faster queries.
+
+```javascript
+// Add indexes to models
+userSchema.index({ username: 1 }, { unique: true });
+roomSchema.index({ code: 1 }, { unique: true });
+```
+
+### 27. Client-side Caching
+**Why:** Reduce API calls.
+
+```bash
+npm install swr
+```
 
 ## Checklist
 
-Apply these before moving to Phase 2:
+Current status:
 
-- [ ] Create `.gitignore` with React patterns
-- [ ] Remove `node_modules` from git
-- [ ] Separate `server/` and `client/` folders
-- [ ] Add start scripts to both packages
+- [x] .gitignore created
+- [x] Server/client separated
+- [x] Environment variables
+- [x] Start scripts
+- [x] Vite proxy
+- [x] Socket.io rooms
+- [x] MongoDB Atlas
+- [x] JWT auth
+- [x] StrictMode fix
+- [x] Collapsible sidebar
 
-Optional (recommended):
+Future improvements:
 
-- [ ] Add `.env` file for server
-- [ ] Configure Vite proxy
-- [ ] Add error handling to server
-- [ ] Install React DevTools
+- [ ] Error boundary
+- [ ] Loading states
+- [ ] Toast notifications
+- [ ] Canvas optimization
+- [ ] Image upload
+- [ ] Morgan logging
+- [ ] React DevTools
+- [ ] Unit tests
+- [ ] TypeScript
+- [ ] ESLint + Prettier

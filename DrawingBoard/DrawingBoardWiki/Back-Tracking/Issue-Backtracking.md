@@ -8,15 +8,123 @@
 
 | Symptom | Likely Phase | What to Check |
 |---------|--------------|---------------|
-| Server won't start | [[Phase-1-Setup-React\|Phase 1]] or [[Phase-2-Server-API\|Phase 2]] | `package.json`, port conflicts, missing express |
-| React app won't load | [[Phase-1-Setup-React\|Phase 1]] or [[Phase-3-React-Canvas\|Phase 3]] | Vite config, npm install, port 5173 |
-| Canvas blank | [[Phase-3-React-Canvas\|Phase 3]] | Canvas component, useEffect, ref |
-| Drawing invisible | [[Phase-3-React-Canvas\|Phase 3]] | `ctx.stroke()` called, state updates |
-| CORS error | [[Phase-2-Server-API\|Phase 2]] | CORS middleware, proxy config |
-| API not responding | [[Phase-2-Server-API\|Phase 2]] | Server running, correct port |
-| Colors wrong | [[Phase-4-Tools\|Phase 4]] | State updates, strokeStyle |
-| Undo broken | [[Phase-5-State\|Phase 5]] | Stroke array state management |
-| Strokes lost on reload | [[Phase-5-State\|Phase 5]] | API calls, fetch on mount |
+| Server won't start | Phase 1 | `package.json`, port conflicts, missing express |
+| React app won't load | Phase 1 | Vite config, npm install, port 5173 |
+| Canvas blank | Phase 3 | Canvas component, useEffect, ref |
+| Drawing invisible | Phase 3 | `ctx.stroke()` called, state updates |
+| CORS error | Phase 2 | CORS middleware, proxy config |
+| API not responding | Phase 2 | Server running, correct port |
+| Colors wrong | Phase 5 | State updates, strokeStyle |
+| Undo broken | Phase 5 | Stroke array state management |
+| Strokes lost on reload | Phase 4 | Room storage, API calls |
+| Socket disconnect on join | Phase 4 | React.StrictMode, socket lifecycle |
+| Strokes in wrong room | Phase 4 | Room isolation, canvas clearing |
+
+## Recent Bug Fixes
+
+### Socket Disconnect on Room Join
+
+**Date:** 2026-08-31  
+**Phase:** Phase 4 (Rooms)  
+**Severity:** Critical
+
+**Symptom:** User disconnects immediately after joining a room.
+
+**Root Cause:** `React.StrictMode` in development mode causes components to mount → unmount → remount, which closes the socket connection.
+
+**Fix:** Removed `React.StrictMode` from `client/src/main.jsx`
+
+**Files Changed:**
+- `client/src/main.jsx` - Removed StrictMode wrapper
+- `client/src/hooks/useSocket.js` - Fixed socket lifecycle to not recreate on userInfo change
+
+**Server Logs:**
+```
+[Socket] Connected: abc123
+[Socket] join-room: abc123 -> room123
+[Socket] Disconnected: abc123 | Reason: client namespace disconnect
+```
+
+**Prevention:**
+- Don't use React.StrictMode with Socket.io
+- Use refs for socket connections
+- Don't put socket in useEffect dependencies
+
+---
+
+### Strokes Appearing in Wrong Room
+
+**Date:** 2026-08-31  
+**Phase:** Phase 4 (Rooms)  
+**Severity:** High
+
+**Symptom:** Drawing in Room A shows strokes in Room B.
+
+**Root Cause:** Canvas and strokes not being cleared when switching rooms.
+
+**Fix:** Clear canvas and stroke history on room switch.
+
+**Files Changed:**
+- `client/src/App.jsx` - Added room switch cleanup
+- `server/server.js` - Per-room stroke storage
+
+**Prevention:**
+- Always clear state when changing context
+- Use room-specific storage
+- Test multi-room scenarios
+
+---
+
+### Guest Account Cleanup
+
+**Date:** 2026-08-31  
+**Phase:** Phase 3 (Auth)  
+**Severity:** Medium
+
+**Symptom:** Guest accounts not deleted on disconnect.
+
+**Root Cause:** Disconnect handler not properly tracking guest users.
+
+**Fix:** Added guestUsers Map to track guest socket IDs.
+
+**Files Changed:**
+- `server/server.js` - Added guest user tracking
+
+---
+
+### Users Dropdown Hover Issue
+
+**Date:** 2026-08-31  
+**Phase:** UI Enhancements  
+**Severity:** Medium
+
+**Symptom:** Dropdown closes when moving mouse to buttons.
+
+**Root Cause:** Mouse events on trigger only, dropdown outside event bounds.
+
+**Fix:** Added invisible bridge area using ::before pseudo-element.
+
+**Files Changed:**
+- `client/src/index.css` - Added bridge area for dropdown
+
+---
+
+### Room Name Color in List
+
+**Date:** 2026-08-31  
+**Phase:** UI Enhancements  
+**Severity:** Low
+
+**Symptom:** Room names showing in white text.
+
+**Root Cause:** CSS specificity issue, room-info styles conflicting.
+
+**Fix:** Scoped styles with .room-list prefix, set color to #333.
+
+**Files Changed:**
+- `client/src/index.css` - Fixed room name color
+
+---
 
 ## React-Specific Issues
 
@@ -27,6 +135,7 @@
 | `Event handler not firing` | Wrong event name | Check onMouseDown vs onClick |
 | `Component not rendering` | Import error | Check component export/import |
 | `Vite dev server error` | Config issue | Check vite.config.js |
+| `Socket disconnects on mount` | React.StrictMode | Remove StrictMode |
 
 ## Debugging Flowchart
 
@@ -58,7 +167,7 @@ lsof -i :3000
 
 ### Check server logs
 
-Look at terminal where `node server.js` is running for error messages.
+Look at terminal where `npm start` is running for error messages.
 
 ### Test API endpoints manually
 
@@ -89,12 +198,39 @@ Look for JavaScript errors. Common ones:
 | `Failed to fetch` | Server not running | Start server |
 | `SyntaxError: Unexpected token` | JSON parse error | Check POST data format |
 | `CORS policy` | Missing CORS | Check server middleware |
+| `client namespace disconnect` | Socket closed | Check React.StrictMode |
 
 ### Check Network Tab
 
 - Filter by `XHR` to see API calls
 - Red entries = failed requests
 - Click request to see response
+
+## Socket.io Debugging
+
+### Common Socket Issues
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `client namespace disconnect` | React.StrictMode | Remove from main.jsx |
+| `transport error` | Network issue | Check connection |
+| `timeout` | Server not responding | Check server logs |
+| `connect_error` | Connection refused | Verify server running |
+
+### Socket Debug Logging
+
+Server logs to watch:
+```
+[Socket] Connected: <id>
+[Socket] join-room: <id> -> <roomId>
+[Socket] Disconnected: <id> | Reason: <reason>
+```
+
+Client logs (F12 console):
+```
+[Socket] Connected: <id>
+[Socket] Disconnected, reason: <reason>
+```
 
 ## Common Error Messages
 
@@ -141,15 +277,14 @@ const cors = require('cors');
 app.use(cors());
 ```
 
-### "vite: command not found"
+### "client namespace disconnect"
 
-**Cause:** Vite not installed
+**Cause:** Socket.io client disconnected intentionally
 
 **Fix:**
-```bash
-cd client
-npm install
-```
+1. Remove React.StrictMode
+2. Check socket lifecycle in useSocket.js
+3. Ensure socket not recreated on re-renders
 
 ## Phase-Specific Debugging
 
@@ -225,5 +360,7 @@ React issues → Phase 1, 3
 Canvas issues → Phase 3-4
 API issues → Phase 2
 State issues → Phase 5
-UI issues → Phase 6
+Socket issues → Phase 4
+Room issues → Phase 4
+UI issues → Sidebar
 ```

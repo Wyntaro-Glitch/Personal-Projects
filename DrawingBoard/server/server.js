@@ -12,10 +12,10 @@ require('dotenv').config();
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)
   .then(async () => {
-    console.log('Connected to MongoDB');
+    console.log('[DB] Connected to MongoDB');
     await cleanupGuestAccounts();
   })
-  .catch(err => console.error('MongoDB connection error:', err));
+  .catch(err => console.error('[DB] MongoDB connection error:', err));
 
 const app = express();
 const server = http.createServer(app);
@@ -46,10 +46,10 @@ async function cleanupGuestAccounts() {
     const User = require('./models/User');
     const result = await User.deleteMany({ isGuest: true });
     if (result.deletedCount > 0) {
-      console.log(`Cleaned up ${result.deletedCount} guest accounts`);
+      console.log('[DB] Cleaned up', result.deletedCount, 'guest accounts');
     }
   } catch (err) {
-    console.error('Error cleaning up guest accounts:', err);
+    console.error('[DB] Error cleaning up guest accounts:', err);
   }
 }
 
@@ -58,21 +58,26 @@ async function deleteGuestAccount(userId) {
   try {
     const User = require('./models/User');
     await User.deleteOne({ _id: userId, isGuest: true });
-    console.log(`Guest account deleted: ${userId}`);
+    console.log('[DB] Guest account deleted:', userId);
   } catch (err) {
-    console.error('Error deleting guest account:', err);
+    console.error('[DB] Error deleting guest account:', err);
   }
 }
 
 // Socket.io Connection
 io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
+  console.log('[Socket] Connected:', socket.id, '| Transport:', socket.conn.transport.name);
 
   let currentRoomId = null;
   let currentUserInfo = { id: socket.id, username: 'Guest', color: getRandomColor() };
 
+  socket.conn.on('upgrade', (transport) => {
+    console.log('[Socket] Transport upgraded:', socket.id, '->', transport.name);
+  });
+
   // Listen for user info after connection
   socket.on('user-info', (userInfo) => {
+    console.log('[Socket] user-info:', socket.id, JSON.stringify(userInfo));
     currentUserInfo.username = userInfo.username;
     currentUserInfo.isGuest = userInfo.isGuest || false;
     currentUserInfo.userId = userInfo.userId;
@@ -84,8 +89,11 @@ io.on('connection', (socket) => {
 
   // Join a room
   socket.on('join-room', async (roomId) => {
+    console.log('[Socket] join-room:', socket.id, '->', roomId, '| prev:', currentRoomId);
+    
     // Leave previous room if any
     if (currentRoomId) {
+      console.log('[Socket] Leaving previous room:', currentRoomId);
       socket.leave(currentRoomId);
       const prevUsers = roomUsers.get(currentRoomId) || [];
       roomUsers.set(currentRoomId, prevUsers.filter(u => u.id !== socket.id));
@@ -113,38 +121,39 @@ io.on('connection', (socket) => {
       const room = await Room.findById(roomId);
       if (room) {
         socket.emit('load-strokes', room.strokes || []);
+        console.log('[Socket] Loaded strokes:', room.strokes?.length || 0);
+      } else {
+        console.log('[Socket] Room not found in DB:', roomId);
       }
     } catch (err) {
-      console.error('Error loading room strokes:', err);
+      console.error('[Socket] Error loading room strokes:', err.message);
     }
 
-    console.log(`User ${socket.id} joined room ${roomId}`);
+    console.log('[Socket] User joined room:', socket.id, '->', roomId);
   });
 
   // Leave room
   socket.on('leave-room', (roomId) => {
+    console.log('[Socket] leave-room:', socket.id, '<-', roomId);
     socket.leave(roomId);
     const users = roomUsers.get(roomId) || [];
     roomUsers.set(roomId, users.filter(u => u.id !== socket.id));
     io.to(roomId).emit('users-update', roomUsers.get(roomId) || []);
     io.to(roomId).emit('user-left', socket.id);
     currentRoomId = null;
-    console.log(`User ${socket.id} left room ${roomId}`);
+    console.log('[Socket] User left room:', socket.id);
   });
 
   // Broadcast new stroke to room only
   socket.on('new-stroke', async (stroke) => {
     if (currentRoomId) {
-      // Save stroke to database
       try {
         await Room.findByIdAndUpdate(currentRoomId, {
           $push: { strokes: stroke }
         });
       } catch (err) {
-        console.error('Error saving stroke:', err);
+        console.error('[Socket] Error saving stroke:', err.message);
       }
-      
-      // Broadcast to room
       socket.to(currentRoomId).emit('receive-stroke', stroke);
     }
   });
@@ -159,8 +168,8 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('disconnect', async () => {
-    console.log('User disconnected:', socket.id);
+  socket.on('disconnect', async (reason) => {
+    console.log('[Socket] Disconnected:', socket.id, '| Reason:', reason);
     
     // Check if this was a guest user
     const guestUserId = guestUsers.get(socket.id);
@@ -171,11 +180,20 @@ io.on('connection', (socket) => {
     
     // Remove from room
     if (currentRoomId) {
+      console.log('[Socket] Removing from room:', currentRoomId);
       const users = roomUsers.get(currentRoomId) || [];
       roomUsers.set(currentRoomId, users.filter(u => u.id !== socket.id));
       io.to(currentRoomId).emit('users-update', roomUsers.get(currentRoomId) || []);
       io.to(currentRoomId).emit('user-left', socket.id);
     }
+  });
+
+  socket.on('connect_error', (err) => {
+    console.error('[Socket] connect_error:', socket.id, err.message);
+  });
+
+  socket.on('error', (err) => {
+    console.error('[Socket] error:', socket.id, err.message);
   });
 });
 
@@ -191,5 +209,5 @@ function getRandomColor() {
 }
 
 server.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+  console.log('[Server] Running at http://localhost:' + PORT);
 });

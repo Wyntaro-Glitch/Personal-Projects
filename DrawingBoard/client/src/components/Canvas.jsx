@@ -7,15 +7,21 @@ export default function Canvas({   brushSize,
   strokes,
   onStrokesChange,
   remoteCursors,
-  onCursorMove
+  onCursorMove,
+  currentTool
 }) {
   const {
     canvasRef,
     startDrawing,
     draw,
     stopDrawing,
-    redrawCanvas
+    redrawCanvas,
+    setTool
   } = useCanvas(strokes, onStrokesChange);
+
+  useEffect(() => {
+    setTool(currentTool);
+  }, [currentTool, setTool]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

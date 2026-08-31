@@ -1,128 +1,211 @@
-# Phase 7: Documentation
+# Documentation
 
-> **Status:** ⬜ Not Started  
-> **Priority:** Low  
-> **Depends On:** [[Phase-6-Polish]]
+> **Status:** ✅ Completed  
+> **Priority:** Medium  
+> **Last Updated:** 2026-08-31
 
 ## Objective
 
-Write project README with setup instructions.
+Document the DrawingBoard application for maintainability and sharing.
 
-## Why This Matters
+## Tech Stack
 
-Essential for project maintainability and sharing with others.
+- **Frontend:** React + Vite
+- **Backend:** Node.js + Express + Socket.io
+- **Database:** MongoDB Atlas
+- **Auth:** JWT + bcrypt
 
-## Deliverables
+## Setup Instructions
 
-- [ ] README.md file
-- [ ] Setup instructions
-- [ ] Feature list
-- [ ] How to run
+### Prerequisites
+- Node.js (v18 or higher)
+- npm
+- MongoDB Atlas account (or local MongoDB)
 
-## Tasks
+### 1. Clone and Install
 
-### 1. Create README.md
+```bash
+git clone <your-repo-url>
+cd DrawingBoard
 
-```markdown
-# DrawingBoard
+# Install server dependencies
+cd server
+npm install
 
-A local canvas drawing server built with Node.js and HTML5 Canvas.
+# Install client dependencies
+cd ../client
+npm install
+```
+
+### 2. Configure Environment
+
+Create `server/.env`:
+```
+PORT=3000
+MONGODB_URI=your_mongodb_atlas_uri
+JWT_SECRET=your_secret_key
+```
+
+### 3. Start Development
+
+```bash
+# Terminal 1 - Server
+cd server
+npm start
+
+# Terminal 2 - Client
+cd client
+npm run dev
+```
+
+### 4. Open Browser
+
+```
+http://localhost:5173
+```
 
 ## Features
 
-- Freehand drawing with smooth strokes
-- Adjustable brush size
-- Color picker for any color
-- Eraser mode
-- Undo/Redo functionality
-- Save/Load strokes (persist on reload)
-- Download canvas as PNG
-- Keyboard shortcuts (Ctrl+Z, Ctrl+Y)
-- Responsive canvas (fills window)
+### Core Features
+- ✅ Real-time collaborative drawing
+- ✅ User authentication (register, login, guest)
+- ✅ Room-based collaboration
+- ✅ Drawing tools (pen, shapes, fill, text)
+- ✅ Remote cursors visible
+- ✅ Undo/redo functionality
+- ✅ Canvas download as PNG
 
-## Prerequisites
+### Drawing Tools
+- **Pen** - Freehand drawing
+- **Rectangle** - Draw rectangles
+- **Circle** - Draw circles
+- **Line** - Draw straight lines
+- **Fill** - Flood fill areas
+- **Text** - Add text annotations
+- **Eraser** - Erase strokes
 
-- Node.js (v18 or higher)
-- npm (comes with Node.js)
+### UI Features
+- Collapsible sidebar
+- Tool selection with icons
+- Brush size preview
+- Color presets
+- Users list with "You" badge
+- Room code display
 
-## Setup
+## API Endpoints
 
-1. Clone the repository:
-   ```bash
-   git clone <your-repo-url>
-   cd DrawingBoard
-   ```
+### Auth
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /api/auth/register | Register new user |
+| POST | /api/auth/login | Login with username |
+| POST | /api/auth/guest | Login as guest |
+| GET | /api/auth/me | Get current user |
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+### Rooms
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /api/rooms | Get all rooms |
+| POST | /api/rooms | Create new room |
+| GET | /api/rooms/:id | Get room by ID |
+| POST | /api/rooms/:id/join | Join room |
+| POST | /api/rooms/:id/leave | Leave room |
+| DELETE | /api/rooms/:id | Delete room (owner) |
 
-3. Start the server:
-   ```bash
-   node server.js
-   ```
+### Strokes
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /strokes | Get saved strokes |
+| POST | /strokes | Save strokes |
 
-4. Open browser to:
-   ```
-   http://localhost:3000
-   ```
+## Socket.io Events
+
+### Client → Server
+| Event | Data | Description |
+|-------|------|-------------|
+| join-room | roomId | Join a room |
+| leave-room | roomId | Leave a room |
+| new-stroke | stroke | Broadcast new stroke |
+| cursor-move | {x, y, color} | Broadcast cursor position |
+| user-info | {username, isGuest} | Send user info |
+
+### Server → Client
+| Event | Data | Description |
+|-------|------|-------------|
+| load-strokes | strokes[] | Load room strokes |
+| receive-stroke | stroke | Receive new stroke |
+| cursor-update | {userId, x, y, color} | Receive cursor update |
+| users-update | users[] | Update users list |
+| user-left | userId | User left room |
 
 ## Project Structure
 
 ```
 DrawingBoard/
-├── server.js          # Express server with API endpoints
-├── package.json       # Project dependencies
-├── public/
-│   ├── index.html     # Main HTML page
-│   ├── style.css      # Styling
-│   └── app.js         # Canvas drawing logic
-└── README.md          # This file
+├── server/
+│   ├── server.js           # Express + Socket.io
+│   ├── models/
+│   │   ├── User.js         # User schema
+│   │   └── Room.js         # Room schema
+│   ├── routes/
+│   │   ├── auth.js         # Auth routes
+│   │   └── rooms.js        # Room routes
+│   ├── middleware/
+│   │   └── auth.js         # JWT middleware
+│   └── .env                # Environment vars
+├── client/
+│   ├── src/
+│   │   ├── App.jsx         # Main app
+│   │   ├── components/
+│   │   │   ├── Canvas.jsx  # Drawing canvas
+│   │   │   ├── Topbar.jsx  # Two-row topbar
+│   │   │   ├── Ribbon.jsx  # Menu ribbon
+│   │   │   └── Sidebar.jsx # Tool sidebar
+│   │   ├── hooks/
+│   │   │   ├── useCanvas.js
+│   │   │   └── useSocket.js
+│   │   └── api/
+│   │       ├── auth.js
+│   │       └── rooms.js
+│   └── package.json
+└── DrawingBoardWiki/
 ```
 
-## API Endpoints
+## UI Components
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | /strokes | Retrieve all saved strokes |
-| POST | /strokes | Save strokes array |
+### Topbar
+- **Top Row:** Logo, menus, room info, users dropdown
+- **Bottom Row:** Action buttons (Undo, Redo, Clear, Download)
+- **Users Dropdown:** Shows connected users, Back to Rooms, Logout
+
+### Ribbon
+- Collapsible menu sections
+- File, Edit, Layers, Select placeholders
+
+### Sidebar
+- Collapsible tool sections
+- Drawing tools, Brush, Color
 
 ## Keyboard Shortcuts
 
 | Shortcut | Action |
 |----------|--------|
-| Ctrl+Z | Undo last stroke |
-| Ctrl+Y | Redo undone stroke |
-
-## License
-
-MIT
-```
-
-**What this does:**
-- Documents the project for others (and future you)
-- Explains how to set up and run
-- Lists features and architecture
-
-## Completion Checklist
-
-- [ ] README.md exists
-- [ ] Setup instructions are clear
-- [ ] All features listed
-- [ ] How to run is explained
-- [ ] Project structure documented
-
-## Verification
-
-1. Read README.md
-2. Follow setup instructions from scratch
-3. Verify everything works as documented
+| Ctrl+Z | Undo |
+| Ctrl+Y | Redo |
 
 ## Common Issues
 
 | Issue | Cause | Solution |
 |-------|-------|----------|
-| Instructions don't work | Missing step | Test each command |
-| Features not listed | Forgot to update | Review what was built |
-| Structure wrong | File paths changed | Update diagram |
+| Socket disconnect on join | React.StrictMode | Removed in main.jsx |
+| Strokes appear in wrong room | Not clearing on room switch | Clear canvas on room change |
+| User not found | Token expired | Re-login required |
+| Room not found | Invalid room ID | Check room code |
+
+## Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| PORT | Server port | 3000 |
+| MONGODB_URI | MongoDB connection string | - |
+| JWT_SECRET | Secret for JWT tokens | - |

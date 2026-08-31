@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Canvas from './components/Canvas';
-import Toolbar from './components/Toolbar';
-import Users from './components/Users';
+import Sidebar from './components/Sidebar';
+import Topbar from './components/Topbar';
+import Ribbon from './components/Ribbon';
 import Login from './components/Login';
 import Register from './components/Register';
 import GuestLogin from './components/GuestLogin';
@@ -20,10 +21,12 @@ function DrawingApp() {
   const [brushSize, setBrushSize] = useState(5);
   const [color, setColor] = useState('#000000');
   const [isEraser, setIsEraser] = useState(false);
+  const [currentTool, setCurrentTool] = useState('pen');
   const [remoteCursors, setRemoteCursors] = useState({});
   const [users, setUsers] = useState([]);
   const [currentRoom, setCurrentRoom] = useState(null);
-  const [view, setView] = useState('rooms'); // 'rooms', 'create', 'join', 'drawing'
+  const [view, setView] = useState('rooms');
+  const [activeMenu, setActiveMenu] = useState(null);
   
   const { user, logout } = useAuth();
 
@@ -52,32 +55,36 @@ function DrawingApp() {
 
   useKeyboardShortcuts(undo, redo, canUndo, canRedo);
 
+  const prevRoomIdRef = useRef(null);
+
   // Join socket room when entering a room
   useEffect(() => {
-    if (currentRoom && socket) {
-      // Clear canvas first
+    const newRoomId = currentRoom?._id;
+    const prevRoomId = prevRoomIdRef.current;
+
+    console.log('[App] Room effect:', { newRoomId, prevRoomId, connected });
+
+    if (newRoomId === prevRoomId) return;
+
+    // Leave previous room
+    if (prevRoomId && socket) {
+      console.log('[App] Emitting leave-room:', prevRoomId);
+      socket.emit('leave-room', prevRoomId);
+      clearHistory();
       const canvas = document.querySelector('canvas');
       if (canvas) {
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
       }
-      clearHistory();
-      
-      socket.emit('join-room', currentRoom._id);
     }
-    
-    return () => {
-      if (currentRoom && socket) {
-        socket.emit('leave-room', currentRoom._id);
-        // Clear strokes when leaving room
-        clearHistory();
-        const canvas = document.querySelector('canvas');
-        if (canvas) {
-          const ctx = canvas.getContext('2d');
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
-      }
-    };
+
+    // Join new room
+    if (newRoomId && socket) {
+      console.log('[App] Emitting join-room:', newRoomId);
+      socket.emit('join-room', newRoomId);
+    }
+
+    prevRoomIdRef.current = newRoomId;
   }, [currentRoom?._id, socket]);
 
   // Load strokes from socket on connect
@@ -220,41 +227,46 @@ function DrawingApp() {
   // Drawing view
   return (
     <div className="App">
-      <div className="header">
-        <button className="back-btn" onClick={handleBackToRooms}>
-          ← Back to Rooms
-        </button>
-        <h1>{currentRoom.name} ({currentRoom.code})</h1>
-        <div className="user-info">
-          <span>{user?.username || 'Guest'}</span>
-          <button className="logout-btn" onClick={handleLogout}>Logout</button>
-        </div>
-      </div>
-      <Toolbar
-        brushSize={brushSize}
-        setBrushSize={setBrushSize}
-        color={color}
-        setColor={setColor}
-        isEraser={isEraser}
-        setIsEraser={setIsEraser}
-        clearCanvas={clearCanvas}
+      <Topbar
         undo={undo}
         redo={redo}
         canUndo={canUndo}
         canRedo={canRedo}
+        clearCanvas={clearCanvas}
         downloadPNG={() => {}}
+        users={users}
+        currentUserId={socket?.id}
+        roomName={currentRoom.name}
+        roomCode={currentRoom.code}
+        activeMenu={activeMenu}
+        setActiveMenu={setActiveMenu}
+        onLogout={handleLogout}
+        onBackToRooms={handleBackToRooms}
       />
-      <div className="main-content">
-        <Canvas
+      <Ribbon activeMenu={activeMenu} />
+      <div className="drawing-layout">
+        <Sidebar
           brushSize={brushSize}
+          setBrushSize={setBrushSize}
           color={color}
+          setColor={setColor}
           isEraser={isEraser}
-          strokes={strokes}
-          onStrokesChange={handleStrokesChange}
-          remoteCursors={remoteCursors}
-          onCursorMove={handleCursorMove}
+          setIsEraser={setIsEraser}
+          currentTool={currentTool}
+          setCurrentTool={setCurrentTool}
         />
-        <Users users={users} currentUserId={socket?.id} />
+        <div className="canvas-area">
+          <Canvas
+            brushSize={brushSize}
+            color={color}
+            isEraser={isEraser}
+            strokes={strokes}
+            onStrokesChange={handleStrokesChange}
+            remoteCursors={remoteCursors}
+            onCursorMove={handleCursorMove}
+            currentTool={currentTool}
+          />
+        </div>
       </div>
     </div>
   );
