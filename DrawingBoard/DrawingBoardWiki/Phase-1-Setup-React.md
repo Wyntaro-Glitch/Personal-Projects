@@ -133,11 +133,11 @@ DrawingBoard/
 
 ## Completion Checklist
 
-- [ ] `server/` folder exists with Express
-- [ ] `client/` folder exists with React + Vite
-- [ ] `npm install` works in both folders
-- [ ] Old `public/` folder deleted
-- [ ] `.gitignore` updated
+- [x] `server/` folder exists with Express
+- [x] `client/` folder exists with React + Vite
+- [x] `npm install` works in both folders
+- [x] Old `public/` folder deleted
+- [x] `.gitignore` updated
 
 ## Verification Commands
 
