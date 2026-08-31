@@ -29,12 +29,12 @@ client/src/
 
 ## Deliverables
 
-- [ ] `useCanvas.js` - Custom hook for drawing
-- [ ] `useStrokeHistory.js` - Undo/redo logic
-- - [ ] `strokes.js` - API calls
-- [ ] Updated `Canvas.jsx` - Uses hooks
-- [ ] Updated `Toolbar.jsx` - Undo/redo buttons
-- [ ] Updated `App.jsx` - State management
+- [x] `useCanvas.js` - Custom hook for drawing
+- [x] `useStrokeHistory.js` - Undo/redo logic
+- [x] `strokes.js` - API calls
+- [x] Updated `Canvas.jsx` - Uses hooks
+- [x] Updated `Toolbar.jsx` - Undo/redo buttons
+- [x] Updated `App.jsx` - State management
 
 ## Tasks
 
@@ -420,16 +420,16 @@ export default App;
 
 ## Completion Checklist
 
-- [ ] `api/strokes.js` created
-- [ ] `hooks/useStrokeHistory.js` created
-- [ ] `hooks/useCanvas.js` created
-- [ ] `Canvas.jsx` updated
-- [ ] `Toolbar.jsx` updated with undo/redo buttons
-- [ ] `App.jsx` updated with state management
-- [ ] Undo button works
-- [ ] Redo button works
-- [ ] Strokes save to server
-- [ ] Strokes reload on page refresh
+- [x] `api/strokes.js` created
+- [x] `hooks/useStrokeHistory.js` created
+- [x] `hooks/useCanvas.js` created
+- [x] `Canvas.jsx` updated
+- [x] `Toolbar.jsx` updated with undo/redo buttons
+- [x] `App.jsx` updated with state management
+- [x] Undo button works
+- [x] Redo button works
+- [x] Strokes save to server
+- [x] Strokes reload on page refresh
 
 ## Verification
 
