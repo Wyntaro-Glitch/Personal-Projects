@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Canvas from './components/Canvas';
 import Toolbar from './components/Toolbar';
 import useStrokeHistory from './hooks/useStrokeHistory';
+import useKeyboardShortcuts from './hooks/useKeyboardShortcuts';
 import { saveStrokes, loadStrokes } from './api/strokes';
 
 function App() {
@@ -19,6 +20,9 @@ function App() {
     canUndo,
     canRedo
   } = useStrokeHistory();
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts(undo, redo, canUndo, canRedo);
 
   // Load strokes on mount
   useEffect(() => {
@@ -64,6 +68,7 @@ function App() {
         redo={redo}
         canUndo={canUndo}
         canRedo={canRedo}
+        downloadPNG={() => {}}
       />
       <Canvas
         brushSize={brushSize}

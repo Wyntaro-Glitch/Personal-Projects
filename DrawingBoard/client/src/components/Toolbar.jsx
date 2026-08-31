@@ -9,7 +9,8 @@ export default function Toolbar({
   undo,
   redo,
   canUndo,
-  canRedo
+  canRedo,
+  downloadPNG
 }) {
   return (
     <div className="toolbar">
@@ -37,6 +38,7 @@ export default function Toolbar({
       <button onClick={clearCanvas}>Clear</button>
       <button onClick={undo} disabled={!canUndo}>Undo</button>
       <button onClick={redo} disabled={!canRedo}>Redo</button>
+      <button onClick={downloadPNG}>Download PNG</button>
     </div>
   );
 }

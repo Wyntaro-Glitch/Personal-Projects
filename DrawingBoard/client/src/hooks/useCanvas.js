@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
 import { saveStrokes } from '../api/strokes';
 
 export default function useCanvas(strokes, addToHistory) {
@@ -10,6 +10,30 @@ export default function useCanvas(strokes, addToHistory) {
     const canvas = canvasRef.current;
     return canvas ? canvas.getContext('2d') : null;
   }, []);
+
+  // Canvas resize function
+  const resizeCanvas = useCallback(() => {
+    const canvas = canvasRef.current;
+    const ctx = getCtx();
+    if (!canvas || !ctx) return;
+
+    // Save current drawing
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    
+    // Resize canvas
+    canvas.width = window.innerWidth - 40;
+    canvas.height = window.innerHeight - 150;
+    
+    // Restore drawing
+    ctx.putImageData(imageData, 0, 0);
+  }, [getCtx]);
+
+  // Set up resize listener
+  useEffect(() => {
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    return () => window.removeEventListener('resize', resizeCanvas);
+  }, [resizeCanvas]);
 
   const startDrawing = useCallback((e, brushSize, color, isEraser) => {
     const ctx = getCtx();
@@ -81,12 +105,24 @@ export default function useCanvas(strokes, addToHistory) {
     }
   }, [getCtx]);
 
+  // Download as PNG
+  const downloadPNG = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const link = document.createElement('a');
+    link.download = 'drawing.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }, []);
+
   return {
     canvasRef,
     startDrawing,
     draw,
     stopDrawing,
     redrawCanvas,
-    clearCanvas
+    clearCanvas,
+    downloadPNG
   };
 }
