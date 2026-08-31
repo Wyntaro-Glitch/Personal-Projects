@@ -6,6 +6,7 @@
 
 - [[Progress]] - Overall project status
 - [[Issue-Backtracking]] - Debugging guide
+- [[Recommendations]] - Best practices and improvements
 
 ## Phases
 
