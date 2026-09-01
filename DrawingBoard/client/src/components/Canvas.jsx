@@ -19,6 +19,7 @@ export default function Canvas({
   layers,
   activeLayerId,
   remoteCursors,
+  remoteStrokes,
   onCursorMove,
   currentTool,
   onDraw,
@@ -28,6 +29,7 @@ export default function Canvas({
   height = 1080
 }) {
   const canvasRef = useRef(null);
+  const overlayRef = useRef(null);
   const containerRef = useRef(null);
   const isDrawingRef = useRef(false);
   const currentStrokeRef = useRef(null);
@@ -69,6 +71,46 @@ export default function Canvas({
     const ctx = canvas.getContext('2d');
     renderAllLayers(ctx, layers, width, height);
   }, [layers, width, height]);
+
+  // Render remote real-time strokes on overlay canvas
+  useEffect(() => {
+    const overlay = overlayRef.current;
+    if (!overlay) return;
+    const ctx = overlay.getContext('2d');
+    ctx.clearRect(0, 0, width, height);
+
+    const strokes = Object.values(remoteStrokes || {});
+    for (const stroke of strokes) {
+      if (stroke.type === 'shape') {
+        ctx.beginPath();
+        ctx.strokeStyle = stroke.color;
+        ctx.lineWidth = stroke.size;
+        if (stroke.shape === 'rectangle') {
+          ctx.strokeRect(stroke.startX, stroke.startY, stroke.endX - stroke.startX, stroke.endY - stroke.startY);
+        } else if (stroke.shape === 'circle') {
+          const cx = (stroke.startX + stroke.endX) / 2;
+          const cy = (stroke.startY + stroke.endY) / 2;
+          ctx.ellipse(cx, cy, Math.abs(stroke.endX - stroke.startX) / 2, Math.abs(stroke.endY - stroke.startY) / 2, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        } else if (stroke.shape === 'line') {
+          ctx.moveTo(stroke.startX, stroke.startY);
+          ctx.lineTo(stroke.endX, stroke.endY);
+          ctx.stroke();
+        }
+      } else if (stroke.type === 'stroke' && stroke.points && stroke.points.length > 0) {
+        ctx.beginPath();
+        ctx.lineWidth = stroke.size;
+        ctx.strokeStyle = stroke.color;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+        for (let i = 1; i < stroke.points.length; i++) {
+          ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
+        }
+        ctx.stroke();
+      }
+    }
+  }, [remoteStrokes, width, height]);
 
   // Set up canvas once
   useEffect(() => {
@@ -328,6 +370,22 @@ export default function Canvas({
         style={{
           border: '1px solid #ccc',
           cursor: cursorStyle,
+          maxWidth: '100%',
+          maxHeight: '100%',
+          transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+          transformOrigin: '0 0',
+          transition: isPanning ? 'none' : undefined
+        }}
+      />
+      <canvas
+        ref={overlayRef}
+        width={width}
+        height={height}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          pointerEvents: 'none',
           maxWidth: '100%',
           maxHeight: '100%',
           transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,

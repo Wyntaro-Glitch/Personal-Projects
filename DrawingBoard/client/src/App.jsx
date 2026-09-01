@@ -213,9 +213,18 @@ function DrawingApp() {
     return cleanup;
   }, [onLoadStrokes, currentRoom, loadLayers]);
 
-  // Listen for new strokes from other users
+  // Listen for new strokes from other users + clear remote buffer
+  const remoteStrokesRef = useRef({});
+  const [, forceRender] = useState(0);
+
   useEffect(() => {
     const cleanup = onReceiveStroke((stroke) => {
+      // Clear from remote real-time buffer
+      if (stroke && stroke.id && remoteStrokesRef.current[stroke.id]) {
+        delete remoteStrokesRef.current[stroke.id];
+        forceRender(n => n + 1);
+      }
+      // Add to the correct layer
       if (stroke.layerId) {
         addStrokeToLayer(stroke.layerId, stroke);
       } else {
@@ -251,25 +260,13 @@ function DrawingApp() {
   // Listen for real-time strokes from other users
   useEffect(() => {
     const cleanup = onRealtimeStroke((stroke) => {
-      const canvas = document.querySelector(`[data-layer-id="${activeLayerId}"]`);
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      
-      if (stroke.type === 'shape') {
-        // Draw shape
-      } else if (stroke.type === 'stroke' && stroke.points && stroke.points.length > 0) {
-        ctx.beginPath();
-        ctx.lineWidth = stroke.width;
-        ctx.strokeStyle = stroke.color;
-        ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
-        for (let i = 1; i < stroke.points.length; i++) {
-          ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
-        }
-        ctx.stroke();
+      if (stroke && stroke.id) {
+        remoteStrokesRef.current[stroke.id] = stroke;
+        forceRender(n => n + 1);
       }
     });
     return cleanup;
-  }, [onRealtimeStroke, activeLayerId]);
+  }, [onRealtimeStroke]);
 
   // Listen for cursor updates
   useEffect(() => {
@@ -428,6 +425,7 @@ function DrawingApp() {
             layers={layers}
             activeLayerId={activeLayerId}
             remoteCursors={remoteCursors}
+            remoteStrokes={remoteStrokesRef.current}
             onCursorMove={handleCursorMove}
             currentTool={currentTool}
             onDraw={handleDraw}
