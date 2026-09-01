@@ -1,4 +1,6 @@
-const API_URL = 'http://localhost:3000/api/rooms';
+import { API_BASE_URL } from '../config';
+
+const API_URL = `${API_BASE_URL}/api/rooms`;
 
 function getHeaders() {
   const token = localStorage.getItem('token');

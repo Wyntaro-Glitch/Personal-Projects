@@ -1,0 +1,29 @@
+services:
+  # Backend API + Socket.io
+  - type: web
+    name: drawingboard-api
+    runtime: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        value: https://drawingboard.onrender.com
+      - key: NODE_ENV
+        value: production
+
+  # Frontend Static Site
+  - type: static
+    name: drawingboard
+    rootDir: client
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://drawingboard-api.onrender.com
+      - key: VITE_SOCKET_URL
+        value: https://drawingboard-api.onrender.com
