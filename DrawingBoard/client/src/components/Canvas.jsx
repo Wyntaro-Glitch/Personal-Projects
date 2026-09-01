@@ -166,21 +166,6 @@ export default function Canvas({
     };
   }, []);
 
-  // Track cursor on container (works even when pointer is outside the canvas)
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-    const handleContainerMove = (e) => {
-      if (isDrawingRef.current) return; // handlePointerMove emits during drawing
-      const coords = getContainerCoords(e);
-      if (coords) {
-        onCursorMoveRef.current({ x: coords.x, y: coords.y, color: colorRef.current });
-      }
-    };
-    container.addEventListener('pointermove', handleContainerMove);
-    return () => container.removeEventListener('pointermove', handleContainerMove);
-  }, [getContainerCoords]);
-
   // Zoom with scroll wheel toward mouse position
   const handleWheel = useCallback((e) => {
     e.preventDefault();
@@ -241,6 +226,21 @@ export default function Canvas({
       y: e.clientY - rect.top
     };
   }, []);
+
+  // Track cursor on container (works even when pointer is outside the canvas)
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const handleContainerMove = (e) => {
+      if (isDrawingRef.current) return;
+      const coords = getContainerCoords(e);
+      if (coords) {
+        onCursorMoveRef.current({ x: coords.x, y: coords.y, color: colorRef.current });
+      }
+    };
+    container.addEventListener('pointermove', handleContainerMove);
+    return () => container.removeEventListener('pointermove', handleContainerMove);
+  }, [getContainerCoords]);
 
   const handlePointerDown = useCallback((e) => {
     // Pan mode with space

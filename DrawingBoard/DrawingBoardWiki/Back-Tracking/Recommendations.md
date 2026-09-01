@@ -2,7 +2,7 @@
 
 > Best practices and improvements to apply before or during development
 > 
-> **Last Updated:** 2026-09-01
+> **Last Updated:** 2026-09-02
 
 ## Completed
 
@@ -324,7 +324,66 @@ const joinLimiter = rateLimit({
 app.use('/api/rooms/join', joinLimiter);
 ```
 
-## Performance Recommendations
+## Lobby UI Assets (Future)
+
+### 33. Lobby Visual Assets
+**Why:** Make the lobby feel alive and polished without competing with the room list.
+
+#### Animated Mascot / Character
+- Small floating pencil, paintbrush, or palette character
+- Idle animations: blinking, bouncing, painting
+- Best placement: empty-state area or How to Play card
+- Could become the app's identity (similar to login page illustrated character)
+
+#### Player Avatars
+- Circular avatars in the Online Now section
+- Options: generated illustrated avatars, palette-themed icons, or initials
+- Adds immediate social presence
+
+#### Room Status Icons
+Small, consistent icons for room states:
+- 🟢 Live — room is actively being drawn in
+- ⏳ Waiting — room created, waiting for players
+- 🔒 Private — invite-only room
+- 👥 Player count — number of users in room
+- 🎨 Currently drawing — active drawing session
+
+#### Floating Art Doodles (Background)
+Subtle background assets to fill empty space:
+- Paint splashes
+- Pencil sketches
+- Stars and brush strokes
+- Tiny geometric doodles
+- **Keep opacity very low** so the UI stays clean
+
+#### Featured Artwork Carousel
+Small card showing community activity:
+- "Community Sketches — See what players are drawing right now"
+- Show 3–4 miniature drawing thumbnails
+- Pull from recent public room strokes
+
+#### Lobby Activity Feed
+UI component showing live activity:
+- "🎨 Sherwin started drawing in Test123"
+- "🏆 Player123 guessed the word!"
+- "👥 New player joined NewTest"
+- Makes the lobby feel active and social
+
+#### Game Mode Illustrations
+For future game modes, each with a small custom icon/illustration:
+- ✏️ Classic Draw — freeform drawing
+- ⚡ Quick Draw — timed drawing rounds
+- 👥 Team Battle — team-based drawing
+- 🏆 Tournament — competitive play
+
+#### Recommended Layout
+```
+Left:   How to Play + Lobby Stats
+Center: Room List
+Right:  Room Rules + Online Players
+Background: Very subtle floating drawing doodles
+Bonus: Small animated DrawingBoard mascot near bottom or empty spaces
+```
 
 ### 25. Redis for Socket.io
 **Why:** Scale to multiple server instances.
@@ -387,3 +446,4 @@ Future improvements:
 - [ ] JWT refresh tokens
 - [ ] Error message sanitization
 - [ ] Room code brute force protection
+- [ ] Lobby UI assets (mascot, avatars, status icons, activity feed)
