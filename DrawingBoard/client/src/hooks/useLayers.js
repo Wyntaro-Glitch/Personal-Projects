@@ -305,16 +305,22 @@ export default function useLayers(roomId, userId, onLayersChange) {
   const loadLayers = useCallback((roomLayers, roomActiveLayerId) => {
     if (roomLayers && roomLayers.length > 0) {
       const hasPaper = roomLayers[0]?.type === 'paper';
+      let newLayers;
       if (hasPaper) {
-        setLayers(roomLayers);
-        if (roomActiveLayerId) {
-          setActiveLayerId(roomActiveLayerId);
-        }
+        newLayers = roomLayers;
       } else {
         const paper = createPaperLayer();
-        setLayers([paper, ...roomLayers]);
-        if (roomActiveLayerId) {
-          setActiveLayerId(roomActiveLayerId);
+        newLayers = [paper, ...roomLayers];
+      }
+      setLayers(newLayers);
+
+      // Always ensure activeLayerId points to a valid non-paper layer
+      if (roomActiveLayerId && newLayers.find(l => l.id === roomActiveLayerId && l.type !== 'paper')) {
+        setActiveLayerId(roomActiveLayerId);
+      } else {
+        const firstDrawable = newLayers.find(l => l.type !== 'paper');
+        if (firstDrawable) {
+          setActiveLayerId(firstDrawable.id);
         }
       }
     } else {

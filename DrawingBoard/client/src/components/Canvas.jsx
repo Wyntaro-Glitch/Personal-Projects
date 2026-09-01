@@ -386,6 +386,7 @@ export default function Canvas({
           top: 0,
           left: 0,
           pointerEvents: 'none',
+          background: 'transparent',
           maxWidth: '100%',
           maxHeight: '100%',
           transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
