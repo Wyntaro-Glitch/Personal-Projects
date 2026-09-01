@@ -989,7 +989,7 @@ canvas {
   min-width: 0;
   overflow: auto;
   background: #e9ecef;
-  padding: 20px;
+  padding: 0;
 }
 
 /* Layer Panel */
