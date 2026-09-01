@@ -172,25 +172,22 @@ function DrawingApp() {
     setView('rooms');
   }, []);
 
-  // Join socket room when entering a room
+  // Join socket room when entering a room (also re-joins on reconnect after server restart)
   useEffect(() => {
     const newRoomId = currentRoom?._id;
+
+    if (!newRoomId || !socket) return;
+
+    // Leave previous room if switching rooms
     const prevRoomId = prevRoomIdRef.current;
-
-    if (newRoomId === prevRoomId) return;
-
-    // Leave previous room
-    if (prevRoomId && socket) {
+    if (prevRoomId && prevRoomId !== newRoomId) {
       socket.emit('leave-room', prevRoomId);
     }
 
-    // Join new room
-    if (newRoomId && socket) {
-      socket.emit('join-room', newRoomId);
-    }
-
+    // Always (re-)join current room — covers initial join + reconnect after server cold start
+    socket.emit('join-room', newRoomId);
     prevRoomIdRef.current = newRoomId;
-  }, [currentRoom?._id, socket]);
+  }, [currentRoom?._id, socket, connected]);
 
   // Load layers when room changes
   useEffect(() => {
