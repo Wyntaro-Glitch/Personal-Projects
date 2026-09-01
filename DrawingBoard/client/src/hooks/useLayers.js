@@ -37,7 +37,7 @@ const createDefaultLayer = () => ({
   transform: { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0 }
 });
 
-export default function useLayers(roomId, userId) {
+export default function useLayers(roomId, userId, onLayersChange) {
   const paperLayerRef = useRef(createPaperLayer());
   const defaultLayerRef = useRef(createDefaultLayer());
   const [layers, setLayers] = useState([paperLayerRef.current, defaultLayerRef.current]);
@@ -46,6 +46,9 @@ export default function useLayers(roomId, userId) {
   const undoStackRef = useRef([]);
   const redoStackRef = useRef([]);
   const maxHistory = 100;
+  const onLayersChangeRef = useRef(onLayersChange);
+  onLayersChangeRef.current = onLayersChange;
+  const structuralChangeRef = useRef(false);
 
   const saveSnapshot = useCallback((currentLayers) => {
     undoStackRef.current.push(structuredClone(currentLayers));
@@ -55,6 +58,16 @@ export default function useLayers(roomId, userId) {
     redoStackRef.current = [];
   }, []);
 
+  // Notify parent of structural layer changes (not stroke additions)
+  useEffect(() => {
+    if (structuralChangeRef.current) {
+      structuralChangeRef.current = false;
+      if (onLayersChangeRef.current) {
+        onLayersChangeRef.current(layers);
+      }
+    }
+  }, [layers]);
+
   const isPaper = useCallback((layerId) => {
     return layers.find(l => l.id === layerId)?.type === 'paper';
   }, [layers]);
@@ -63,6 +76,7 @@ export default function useLayers(roomId, userId) {
     if (fromId === toId) return;
     if (isPaper(fromId) || isPaper(toId)) return;
 
+    structuralChangeRef.current = true;
     setLayers(prev => {
       saveSnapshot(prev);
       const fromIndex = prev.findIndex(l => l.id === fromId);
@@ -91,6 +105,7 @@ export default function useLayers(roomId, userId) {
       transform: { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0 }
     };
 
+    structuralChangeRef.current = true;
     setLayers(prev => {
       saveSnapshot(prev);
       const currentIdx = prev.findIndex(l => l.id === activeLayerId);
@@ -110,6 +125,7 @@ export default function useLayers(roomId, userId) {
     const layerIndex = layers.findIndex(l => l.id === layerId);
     if (layerIndex === -1) return false;
 
+    structuralChangeRef.current = true;
     setLayers(prev => {
       saveSnapshot(prev);
       const next = prev.filter(l => l.id !== layerId);
@@ -128,6 +144,7 @@ export default function useLayers(roomId, userId) {
   }, [isPaper]);
 
   const toggleVisibility = useCallback((layerId) => {
+    structuralChangeRef.current = true;
     setLayers(prev => {
       saveSnapshot(prev);
       return prev.map(l => l.id === layerId ? { ...l, visible: !l.visible } : l);
@@ -136,6 +153,7 @@ export default function useLayers(roomId, userId) {
 
   const toggleLock = useCallback((layerId) => {
     if (isPaper(layerId)) return;
+    structuralChangeRef.current = true;
     setLayers(prev => {
       saveSnapshot(prev);
       return prev.map(l => l.id === layerId ? { ...l, locked: !l.locked } : l);
@@ -144,6 +162,7 @@ export default function useLayers(roomId, userId) {
 
   const toggleClipping = useCallback((layerId) => {
     if (isPaper(layerId)) return;
+    structuralChangeRef.current = true;
     setLayers(prev => {
       saveSnapshot(prev);
       return prev.map(l => l.id === layerId ? { ...l, clipping: !l.clipping } : l);
@@ -152,6 +171,7 @@ export default function useLayers(roomId, userId) {
 
   const toggleAlphaLock = useCallback((layerId) => {
     if (isPaper(layerId)) return;
+    structuralChangeRef.current = true;
     setLayers(prev => {
       saveSnapshot(prev);
       return prev.map(l => l.id === layerId ? { ...l, alphaLock: !l.alphaLock } : l);
@@ -160,6 +180,7 @@ export default function useLayers(roomId, userId) {
 
   const renameLayer = useCallback((layerId, name) => {
     if (isPaper(layerId)) return;
+    structuralChangeRef.current = true;
     setLayers(prev => {
       saveSnapshot(prev);
       return prev.map(l => l.id === layerId ? { ...l, name } : l);
@@ -167,6 +188,7 @@ export default function useLayers(roomId, userId) {
   }, [saveSnapshot, isPaper]);
 
   const setOpacity = useCallback((layerId, opacity) => {
+    structuralChangeRef.current = true;
     setLayers(prev => {
       saveSnapshot(prev);
       return prev.map(l => l.id === layerId ? { ...l, opacity } : l);
@@ -174,6 +196,7 @@ export default function useLayers(roomId, userId) {
   }, [saveSnapshot]);
 
   const setBlendMode = useCallback((layerId, blendMode) => {
+    structuralChangeRef.current = true;
     setLayers(prev => {
       saveSnapshot(prev);
       return prev.map(l => l.id === layerId ? { ...l, blendMode } : l);
@@ -181,6 +204,7 @@ export default function useLayers(roomId, userId) {
   }, [saveSnapshot]);
 
   const setPaperColor = useCallback((color) => {
+    structuralChangeRef.current = true;
     setLayers(prev => {
       saveSnapshot(prev);
       return prev.map(l => l.type === 'paper' ? { ...l, paperColor: color, paperTransparent: false } : l);
@@ -188,6 +212,7 @@ export default function useLayers(roomId, userId) {
   }, [saveSnapshot]);
 
   const setPaperTransparent = useCallback((transparent) => {
+    structuralChangeRef.current = true;
     setLayers(prev => {
       saveSnapshot(prev);
       return prev.map(l => l.type === 'paper' ? { ...l, paperTransparent: transparent } : l);
@@ -224,6 +249,7 @@ export default function useLayers(roomId, userId) {
 
   const clearLayer = useCallback((layerId) => {
     if (isPaper(layerId)) return;
+    structuralChangeRef.current = true;
     setLayers(prev => {
       saveSnapshot(prev);
       return prev.map(l => l.id === layerId ? { ...l, strokes: [] } : l);
@@ -243,6 +269,7 @@ export default function useLayers(roomId, userId) {
     };
 
     const layerIndex = layers.findIndex(l => l.id === layerId);
+    structuralChangeRef.current = true;
     setLayers(prev => {
       saveSnapshot(prev);
       const next = [...prev];

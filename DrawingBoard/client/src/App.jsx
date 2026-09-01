@@ -78,7 +78,7 @@ function DrawingApp() {
     canUndo,
     canRedo,
     loadLayers
-  } = useLayers(currentRoom?._id, user?.id);
+  } = useLayers(currentRoom?._id, user?.id, emitLayersUpdate);
 
   // Keyboard shortcuts
   const handleUndo = useCallback(() => {
@@ -234,23 +234,12 @@ function DrawingApp() {
     return cleanup;
   }, [onReceiveStroke, addStroke, addStrokeToLayer]);
 
-  // Broadcast layer changes to other users
-  const isRemoteLayersUpdate = useRef(false);
-  useEffect(() => {
-    if (isRemoteLayersUpdate.current) {
-      isRemoteLayersUpdate.current = false;
-      return;
-    }
-    if (socket && connected && currentRoom) {
-      emitLayersUpdate(layers);
-    }
-  }, [layers, socket, connected, currentRoom, emitLayersUpdate]);
+  // Listen for layer updates from other users
 
   // Listen for layer updates from other users
   useEffect(() => {
     const cleanup = onLayersUpdate((remoteLayers) => {
       if (remoteLayers && remoteLayers.length > 0) {
-        isRemoteLayersUpdate.current = true;
         loadLayers(remoteLayers);
       }
     });
