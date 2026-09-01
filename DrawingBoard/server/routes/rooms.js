@@ -2,6 +2,44 @@ const express = require('express');
 const router = express.Router();
 const Room = require('../models/Room');
 const auth = require('../middleware/auth');
+const crypto = require('crypto');
+
+function generateId() {
+  return crypto.randomUUID();
+}
+
+function createDefaultLayers() {
+  return [
+    {
+      id: generateId(),
+      name: 'Paper',
+      type: 'paper',
+      visible: true,
+      opacity: 1,
+      blendMode: 'source-over',
+      locked: true,
+      clipping: false,
+      alphaLock: false,
+      strokes: [],
+      transform: { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0 },
+      paperColor: '#ffffff',
+      paperTransparent: false
+    },
+    {
+      id: generateId(),
+      name: 'Layer 1',
+      type: 'stroke',
+      visible: true,
+      opacity: 1,
+      blendMode: 'source-over',
+      locked: false,
+      clipping: false,
+      alphaLock: false,
+      strokes: [],
+      transform: { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0 }
+    }
+  ];
+}
 
 // Create room
 router.post('/', auth, async (req, res) => {
@@ -21,12 +59,16 @@ router.post('/', auth, async (req, res) => {
       const existing = await Room.findOne({ code });
       codeExists = !!existing;
     }
+
+    const defaultLayers = createDefaultLayers();
     
     const room = new Room({
       name: name.trim(),
       code,
       owner: req.userId,
-      members: [req.userId]
+      members: [req.userId],
+      layers: defaultLayers,
+      activeLayerId: defaultLayers[1].id
     });
     
     await room.save();
@@ -62,6 +104,14 @@ router.get('/:id', auth, async (req, res) => {
     if (!room) {
       return res.status(404).json({ error: 'Room not found' });
     }
+
+    // Backfill layers for rooms created before server-side layer generation
+    if (!room.layers || room.layers.length === 0) {
+      const defaultLayers = createDefaultLayers();
+      room.layers = defaultLayers;
+      room.activeLayerId = defaultLayers[1].id;
+      await room.save();
+    }
     
     res.json(room);
   } catch (err) {
@@ -87,8 +137,16 @@ router.post('/join', auth, async (req, res) => {
     
     if (!room.members.includes(req.userId)) {
       room.members.push(req.userId);
-      await room.save();
     }
+
+    // Backfill layers for rooms created before server-side layer generation
+    if (!room.layers || room.layers.length === 0) {
+      const defaultLayers = createDefaultLayers();
+      room.layers = defaultLayers;
+      room.activeLayerId = defaultLayers[1].id;
+    }
+
+    await room.save();
     
     const populated = await Room.findById(room._id)
       .populate('owner', 'username')

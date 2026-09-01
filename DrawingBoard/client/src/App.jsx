@@ -96,7 +96,6 @@ function DrawingApp() {
   // Handle drawing - add stroke to active layer
   const handleStrokesChange = useCallback((stroke) => {
     const strokeWithLayer = { ...stroke, layerId: activeLayerId };
-    console.log('[App] handleStrokesChange -> emitStroke | layerId:', activeLayerId, 'socket.connected:', socket?.connected);
     addStroke(strokeWithLayer);
     emitStroke(strokeWithLayer);
   }, [activeLayerId, addStroke, emitStroke]);
@@ -217,7 +216,6 @@ function DrawingApp() {
 
   useEffect(() => {
     const cleanup = onReceiveStroke((stroke) => {
-      console.log('[App] receive-stroke:', stroke?.id, 'layerId:', stroke?.layerId);
       // Clear from remote real-time buffer
       if (stroke && stroke.id && remoteStrokesRef.current[stroke.id]) {
         delete remoteStrokesRef.current[stroke.id];

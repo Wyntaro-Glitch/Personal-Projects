@@ -34,11 +34,6 @@ export default function useSocket(userInfo = null) {
       }
     });
 
-    // DEBUG: Direct listener to test if receive-stroke arrives at socket level
-    newSocket.on('receive-stroke', (stroke) => {
-      console.log('[Socket] DEBUG receive-stroke ARRIVED:', stroke?.id, 'layerId:', stroke?.layerId);
-    });
-
     newSocket.on('disconnect', (reason) => {
       console.log('[Socket] Disconnected, reason:', reason);
       setConnected(false);
