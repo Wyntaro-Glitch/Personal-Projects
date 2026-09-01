@@ -28,6 +28,7 @@ function DrawingApp() {
   const [view, setView] = useState('rooms');
   const [activeMenu, setActiveMenu] = useState(null);
   const resetViewRef = useRef(null);
+  const canvasElementRef = useRef(null);
   
   const { user, logout } = useAuth();
   
@@ -116,6 +117,10 @@ function DrawingApp() {
 
   const handleResetViewReady = useCallback((resetFn) => {
     resetViewRef.current = resetFn;
+  }, []);
+
+  const handleCanvasReady = useCallback((canvasEl) => {
+    canvasElementRef.current = canvasEl;
   }, []);
 
   const handleRemoteRenderReady = useCallback((renderFn) => {
@@ -269,15 +274,6 @@ function DrawingApp() {
     return cleanup;
   }, [onCursorUpdate]);
 
-  // Emit cursor position from anywhere on the page (not just canvas)
-  useEffect(() => {
-    const handlePointerMove = (e) => {
-      emitCursor({ x: e.clientX, y: e.clientY, color });
-    };
-    document.addEventListener('pointermove', handlePointerMove);
-    return () => document.removeEventListener('pointermove', handlePointerMove);
-  }, [emitCursor, color]);
-
   // Handle user disconnect
   useEffect(() => {
     const cleanup = onUserLeft((userId) => {
@@ -388,25 +384,32 @@ function DrawingApp() {
   // Drawing view
   return (
     <>
-      {Object.entries(remoteCursors).map(([userId, cursor]) => (
-        <div
-          key={userId}
-          style={{
-            position: 'fixed',
-            left: cursor.x,
-            top: cursor.y,
-            width: '20px',
-            height: '20px',
-            borderRadius: '50%',
-            backgroundColor: cursor.color,
-            border: '2px solid white',
-            boxShadow: '0 0 4px rgba(0,0,0,0.5)',
-            transform: 'translate(-50%, -50%)',
-            pointerEvents: 'none',
-            zIndex: 99999
-          }}
-        />
-      ))}
+      {Object.entries(remoteCursors).map(([userId, cursor]) => {
+        const canvasEl = canvasElementRef.current;
+        if (!canvasEl) return null;
+        const rect = canvasEl.getBoundingClientRect();
+        const viewportX = (cursor.x / 1920) * rect.width + rect.left;
+        const viewportY = (cursor.y / 1080) * rect.height + rect.top;
+        return (
+          <div
+            key={userId}
+            style={{
+              position: 'fixed',
+              left: viewportX,
+              top: viewportY,
+              width: '20px',
+              height: '20px',
+              borderRadius: '50%',
+              backgroundColor: cursor.color,
+              border: '2px solid white',
+              boxShadow: '0 0 4px rgba(0,0,0,0.5)',
+              transform: 'translate(-50%, -50%)',
+              pointerEvents: 'none',
+              zIndex: 99999
+            }}
+          />
+        );
+      })}
       <div className="app">
       <Topbar 
         undo={handleUndo}
@@ -449,6 +452,7 @@ function DrawingApp() {
             onStrokesChange={handleStrokesChange}
             onResetViewReady={handleResetViewReady}
             onRemoteRenderReady={handleRemoteRenderReady}
+            onCanvasReady={handleCanvasReady}
           />
         </div>
         <LayerPanel

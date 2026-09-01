@@ -24,6 +24,7 @@ export default function Canvas({
   onStrokesChange,
   onResetViewReady,
   onRemoteRenderReady,
+  onCanvasReady,
   width = 1920,
   height = 1080
 }) {
@@ -128,6 +129,9 @@ export default function Canvas({
     canvas.height = height;
     const ctx = canvas.getContext('2d');
     renderAllLayers(ctx, layers, width, height);
+
+    // Expose canvas element to parent for cursor coordinate conversion
+    if (onCanvasReady) onCanvasReady(canvas);
 
     // Expose resetView to parent
     if (onResetViewReady) {
@@ -300,6 +304,9 @@ export default function Canvas({
     const coords = getCoords(e);
     if (!coords) return;
     const { x, y } = coords;
+
+    // Emit canvas-internal coordinates for accurate cross-user cursor positioning
+    onCursorMoveRef.current({ x, y, color: colorRef.current });
 
     if (!isDrawingRef.current || !currentStrokeRef.current) return;
 
