@@ -2,7 +2,7 @@
 
 > Quick reference for debugging issues by phase
 > 
-> **Last Updated:** 2026-08-31
+> **Last Updated:** 2026-09-02
 
 ## Symptoms → Likely Phase
 
@@ -19,6 +19,7 @@
 | Strokes lost on reload | Phase 4 | Room storage, API calls |
 | Socket disconnect on join | Phase 4 | React.StrictMode, socket lifecycle |
 | Strokes in wrong room | Phase 4 | Room isolation, canvas clearing |
+| Strokes don't reflect to other users | Phase 4/6 | Layer ID mismatch, socket rejoin |
 
 ## Recent Bug Fixes
 
@@ -126,7 +127,45 @@
 
 ---
 
-## React-Specific Issues
+### Strokes Don't Reflect to Other Users
+
+**Date:** 2026-09-02  
+**Phase:** Phase 4 (Rooms) + Phase 6 (Layers)  
+**Severity:** Critical
+
+**Symptom:** User draws in a room, but the other user sees nothing. Socket is connected, server broadcasts `receive-stroke`, but the stroke never appears on the other client's canvas.
+
+**Root Cause (two issues):**
+
+1. **Layer ID mismatch:** Each client generated its own random layer IDs via `crypto.randomUUID()` in `useLayers.js`. User A's "Layer 1" had ID `aaa-111`, User B's had `bbb-222`. When User A sent a stroke with `layerId: aaa-111`, `addStrokeToLayer` on User B couldn't find that layer and silently dropped the stroke.
+
+2. **Socket room not re-joined after server cold start:** On Render free tier, the server restarts after inactivity (cold start). The server loses all `currentRoomId` state. The client socket reconnects, but the `join-room` effect only ran when the `socket` reference changed — and the same socket instance reconnects, so the room was never re-joined. Server logs showed `new-stroke DROPPED - no currentRoomId`.
+
+**Fix:**
+
+1. **Server-side default layers** (`server/routes/rooms.js`): Room creation now generates default layers (paper + Layer 1) with server-side IDs stored in MongoDB. All clients load the same layer IDs from the DB. Existing rooms are backfilled with default layers on first access.
+
+2. **Client fallback** (`client/src/hooks/useLayers.js`): `addStrokeToLayer` now falls back to the first available non-paper layer if the `layerId` isn't found, instead of silently dropping.
+
+3. **Room re-join on reconnect** (`client/src/App.jsx`): Added `connected` to the `join-room` effect dependencies so it re-emits `join-room` every time the socket connects/reconnects, covering server cold starts.
+
+**Files Changed:**
+- `server/routes/rooms.js` - Server-generated default layers, backfill for existing rooms
+- `client/src/hooks/useLayers.js` - `addStrokeToLayer` fallback for unknown layer IDs
+- `client/src/App.jsx` - Re-join room on socket reconnect (added `connected` dependency)
+
+**Debugging Steps (for similar issues):**
+1. Check Render backend logs for `[Socket] Room ... has X sockets` — if only 1 socket, the other client never joined
+2. Check for `[Socket] new-stroke DROPPED - no currentRoomId` — means socket reconnected but room wasn't re-joined
+3. Add `console.log` in the `onReceiveStroke` callback in App.jsx to verify the event arrives client-side
+4. Check `addStrokeToLayer` — if the layer ID doesn't match, the stroke is silently dropped
+
+**Prevention:**
+- Always generate shared state (like layer IDs) on the server, not independently per client
+- Handle socket reconnection explicitly — don't assume room membership persists across reconnects
+- Never silently drop data — log warnings when expected state is missing
+
+---
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
