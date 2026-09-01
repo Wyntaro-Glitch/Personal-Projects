@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 const generateId = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
