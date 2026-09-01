@@ -409,9 +409,6 @@ export default function Canvas({
           transition: isPanning ? 'none' : undefined
         }}
       />
-      <div className="zoom-indicator">
-        {Math.round(zoom * 100)}%
-      </div>
     </div>
   );
 }

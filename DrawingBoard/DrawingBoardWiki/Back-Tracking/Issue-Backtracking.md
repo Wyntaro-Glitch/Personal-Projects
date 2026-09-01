@@ -167,6 +167,69 @@
 
 ---
 
+### Remote Cursors Invisible After Portal Change
+
+**Date:** 2026-09-02  
+**Phase:** Phase 2 (Socket + Cursors)  
+**Severity:** High
+
+**Symptom:** Remote cursor dots disappear from the other user's screen after changing to `createPortal` to render cursors on `document.body`.
+
+**Root Cause:** Rendering cursors via `createPortal` to `document.body` with `mixBlendMode: 'difference'` caused the white cursor dots to become invisible against the white background. The `mixBlendMode` inverts colors, making white on white effectively invisible.
+
+**Fix:**
+1. Removed `createPortal` — render cursor divs directly in App.jsx fragment
+2. Removed `mixBlendMode: 'difference'`
+3. Cursor divs rendered as `position: fixed` overlay with `z-index: 99999`
+
+**Files Changed:**
+- `client/src/App.jsx` — Cursor rendering moved from portal to inline fragment
+
+---
+
+### Remote Cursor Coordinate Offset With Different Window Sizes
+
+**Date:** 2026-09-02  
+**Phase:** Phase 2 (Socket + Cursors)  
+**Severity:** Medium
+
+**Symptom:** Remote cursor position doesn't align with the other user's actual cursor when window sizes differ.
+
+**Root Cause:** Using `e.clientX`/`e.clientY` (viewport coords) caused offset because different window sizes map the same viewport coordinates to different canvas positions.
+
+**Fix:** Dual coordinate system:
+- **Over canvas:** Send canvas-internal coordinates (0–1920, 0–1080) via `getBoundingClientRect()` conversion
+- **Outside canvas:** Send normalized coordinates (0.0–1.0) relative to `.drawing-layout` container
+- Receiver uses `onCanvas` flag to switch between canvas-rect and layout-rect conversion
+
+**Files Changed:**
+- `client/src/App.jsx` — Document-level `pointermove` listener with `onCanvas` flag, dual coordinate conversion
+- `client/src/components/Canvas.jsx` — `onCanvasReady` callback exposes canvas ref to App
+
+**Known Limitation:** Slightly off with different window sizes; works well with same-sized windows. Acceptable for now.
+
+---
+
+### Canvas Renders Above Sidebars When Zoomed
+
+**Date:** 2026-09-02  
+**Phase:** Canvas Zoom  
+**Severity:** Medium
+
+**Symptom:** When zoomed in, the canvas extends beyond its container and overlaps the sidebar and layer panel instead of going behind them.
+
+**Root Cause:** `.drawing-layout` had `overflow: hidden` which clipped the canvas overflow. Z-index alone couldn't fix it because the canvas was rendered inside the clipped container.
+
+**Fix:**
+1. Changed `.drawing-layout` from `overflow: hidden` to `overflow: visible` with `position: relative`
+2. Set `.canvas-area` to `z-index: 0`
+3. Set `.sidebar` and `.layer-panel` to `z-index: 1` with `position: relative`
+
+**Files Changed:**
+- `client/src/index.css` — `.drawing-layout` overflow and z-index layering for sidebar/layer-panel
+
+---
+
 | Symptom | Cause | Fix |
 |---------|-------|-----|
 | `useRef is null` | Canvas not mounted | Check useEffect dependency |

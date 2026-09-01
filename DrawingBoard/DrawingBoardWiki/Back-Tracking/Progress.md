@@ -4,7 +4,7 @@
 
 ## Overall Status
 
-**Current Phase:** Phase 5 complete + UI enhancements  
+**Current Phase:** Phase 6 complete + deployment + bug fixes  
 **Completion:** 100% (All core phases complete)
 
 ## Phase Status
@@ -133,6 +133,16 @@
 - Dropdown hover fix (bridge area)
 - Cursor offset fix (CSS scaling issue)
 - New MongoDB Atlas cluster configured
+- Render.com deployment (backend + frontend)
+- Server-side default layers (layer ID consistency across users)
+- Socket room re-join on reconnect (cold start recovery)
+- Realtime stroke overlay via direct canvas rendering (bypasses React)
+- Remote cursor coordinate system (canvas-internal + normalized layout-relative)
+- Canvas zoom toward mouse cursor (10%-500%)
+- Space+drag panning when zoomed
+- Center to Canvas button
+- Canvas overflow when zoomed (extends beyond boundaries)
+- Canvas behind sidebars (z-index layering)
 
 ## Next Actions
 
@@ -156,6 +166,10 @@
 | 2026-08-31 | Phase 4 | 2 | Rooms, room isolation, room drawing |
 | 2026-08-31 | Phase 5 | 1 | Drawing tools, shapes, fill, text |
 | 2026-08-31 | UI | 3 | Sidebar, topbar, ribbon, dropdowns, bug fixes |
+| 2026-09-02 | Phase 6 | 4 | Layer drag-drop, layer reorder, paper layer, blend modes, layer properties |
+| 2026-09-02 | Deployment | 2 | Render.com setup, backend + frontend deployment, env vars |
+| 2026-09-02 | Bug Fixes | 3 | Layer ID mismatch, socket rejoin, realtime stroke overlay, remote cursors |
+| 2026-09-02 | Canvas | 2 | Zoom/pan, center-to-canvas, overflow, z-index stacking |
 
 ## Git Commits
 
