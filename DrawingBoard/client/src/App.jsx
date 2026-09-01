@@ -463,6 +463,7 @@ function DrawingApp() {
           onResetView={handleResetView}
         />
       </div>
+      </div>
     </>
   );
 }
