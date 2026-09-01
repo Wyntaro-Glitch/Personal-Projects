@@ -91,9 +91,27 @@ export default function useSocket(userInfo = null) {
     }
   }, [socket]);
 
+  const emitRealtimeStroke = useCallback((stroke) => {
+    if (socket) {
+      socket.emit('realtime-stroke', stroke);
+    }
+  }, [socket]);
+
   const emitCursor = useCallback((data) => {
     if (socket) {
       socket.emit('cursor-move', data);
+    }
+  }, [socket]);
+
+  const emitClearCanvas = useCallback(() => {
+    if (socket) {
+      socket.emit('clear-canvas');
+    }
+  }, [socket]);
+
+  const emitOperation = useCallback((operation) => {
+    if (socket) {
+      socket.emit('document:operation', operation);
     }
   }, [socket]);
 
@@ -132,15 +150,42 @@ export default function useSocket(userInfo = null) {
     }
   }, [socket]);
 
+  const onCanvasCleared = useCallback((callback) => {
+    if (socket) {
+      socket.on('canvas-cleared', callback);
+      return () => socket.off('canvas-cleared', callback);
+    }
+  }, [socket]);
+
+  const onRealtimeStroke = useCallback((callback) => {
+    if (socket) {
+      socket.on('realtime-stroke', callback);
+      return () => socket.off('realtime-stroke', callback);
+    }
+  }, [socket]);
+
+  const onOperation = useCallback((callback) => {
+    if (socket) {
+      socket.on('document:operation', callback);
+      return () => socket.off('document:operation', callback);
+    }
+  }, [socket]);
+
   return {
     socket,
     connected,
     emitStroke,
+    emitRealtimeStroke,
     emitCursor,
+    emitClearCanvas,
+    emitOperation,
     onReceiveStroke,
     onLoadStrokes,
     onCursorUpdate,
     onUserLeft,
-    onUsersUpdate
+    onUsersUpdate,
+    onCanvasCleared,
+    onRealtimeStroke,
+    onOperation
   };
 }

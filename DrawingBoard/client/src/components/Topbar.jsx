@@ -7,7 +7,7 @@ export default function Topbar({
   canRedo,
   clearCanvas,
   downloadPNG,
-  users,
+  users = [],
   currentUserId,
   roomName,
   roomCode,

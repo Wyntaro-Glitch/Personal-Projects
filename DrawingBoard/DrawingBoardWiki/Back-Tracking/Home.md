@@ -73,13 +73,44 @@
 | 5.4 | Tool UI | ✅ Completed | [[Phase-5-Drawing-Tools/Phase-5.4-Tool-UI]] |
 | 5.5 | Broadcast Tools | ✅ Completed | [[Phase-5-Drawing-Tools/Phase-5.5-Broadcast-Tools]] |
 
+### Phase 6: Layers
+
+| Sub-Phase | Name | Status | Link |
+|-----------|------|--------|------|
+| 6.1 | Layer Model | ✅ Completed | [[Phase-6-Layers/Phase-6.1-Layer-Model]] |
+| 6.2 | Layer State | ✅ Completed | [[Phase-6-Layers/Phase-6.2-Layer-State]] |
+| 6.3 | Layer UI | ✅ Completed | [[Phase-6-Layers/Phase-6.3-Layer-UI]] |
+| 6.4 | Canvas Layers | ✅ Completed | [[Phase-6-Layers/Phase-6.4-Canvas-Layers]] |
+| 6.5 | Layer Tools | ✅ Completed | [[Phase-6-Layers/Phase-6.5-Layer-Tools]] |
+| 6.6 | Broadcast Layers | ✅ Completed | [[Phase-6-Layers/Phase-6.6-Broadcast-Layers]] |
+
+### Phase 7: Advanced Layer Features (Future)
+
+| Feature | Status | Link |
+|---------|--------|------|
+| Layer Groups | ⬜ Planned | [[Phase-7-Advanced-Layer-Features/Phase-7-Overview]] |
+| Duplicate Layer | ⬜ Planned | [[Phase-7-Advanced-Layer-Features/Phase-7-Overview]] |
+| Layer Masks | ⬜ Planned | [[Phase-7-Advanced-Layer-Features/Phase-7-Overview]] |
+| Adjustment Layers | ⬜ Planned | [[Phase-7-Advanced-Layer-Features/Phase-7-Overview]] |
+| Fill Layers | ⬜ Planned | [[Phase-7-Advanced-Layer-Features/Phase-7-Overview]] |
+
 ### UI Enhancements
 
 | Enhancement | Status | Notes |
 |-------------|--------|-------|
 | Sidebar | ✅ Completed | Collapsible sidebar with tool sections |
 | Collapsible Sections | ✅ Completed | Tools, Brush, Color, Actions, Users |
-| Bug Fixes | ✅ Completed | Socket disconnect, room switching |
+| Topbar | ✅ Completed | Two-row topbar with menus and actions |
+| Ribbon | ✅ Completed | Menu placeholders (File, Edit, Layers, Select) |
+| Room Code Mask | ✅ Completed | Asterisks mask with eye toggle |
+| Copy Room Code | ✅ Completed | One-click copy to clipboard |
+| Users Dropdown | ✅ Completed | Hover dropdown with actions |
+| Logout Button | ✅ Completed | Added to users dropdown |
+| Back to Rooms | ✅ Completed | Added to users dropdown |
+| Clear Canvas Broadcast | ✅ Completed | Broadcasts clear to all users |
+| Clear Confirmation | ✅ Completed | Prompt when multiple users in room |
+| Real-time Stroke Broadcast | ✅ Completed | Strokes broadcast as they are drawn |
+| Bug Fixes | ✅ Completed | Socket disconnect, room switching, dropdown hover, cursor offset |
 
 ## Project Structure
 
@@ -133,11 +164,12 @@ DrawingBoard/
 ## Features
 
 - ✅ Real-time collaborative drawing
+- ✅ Real-time stroke broadcasting (strokes appear as they are drawn)
 - ✅ User authentication (register, login, guest)
 - ✅ Room-based collaboration (create, join, leave)
 - ✅ Drawing tools (pen, shapes, fill, text)
 - ✅ Remote cursors visible
-- ✅ Undo/redo functionality
+- ✅ Undo/redo functionality (operation-based)
 - ✅ Canvas download as PNG
 - ✅ Two-row topbar with menus
 - ✅ Ribbon with menu placeholders
@@ -147,7 +179,15 @@ DrawingBoard/
 - ✅ Users hover dropdown with actions
 - ✅ Logout and Back to Rooms in dropdown
 - ✅ Room list shows only name
-- ✅ Per-room stroke persistence
+- ✅ Per-room layer persistence
+- ✅ Clear canvas broadcasts to all users
+- ✅ Clear canvas confirmation for multiple users
+- ✅ Layer system with strokes inside each layer
+- ✅ Multi-canvas rendering
+- ✅ Blend modes (Normal, Multiply, Screen, Overlay, Darken, Lighten)
+- ✅ Layer properties (opacity, visibility, lock, clipping, alpha lock)
+- ✅ Layer actions (add, delete, duplicate, clear, rename)
+- ✅ Real-time operation broadcasting
 
 ## Success Criteria
 

@@ -1,9 +1,10 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Canvas from './components/Canvas';
 import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
 import Ribbon from './components/Ribbon';
+import LayerPanel from './components/LayerPanel';
 import Login from './components/Login';
 import Register from './components/Register';
 import GuestLogin from './components/GuestLogin';
@@ -11,11 +12,10 @@ import ProtectedRoute from './components/ProtectedRoute';
 import RoomList from './components/RoomList';
 import CreateRoom from './components/CreateRoom';
 import JoinRoom from './components/JoinRoom';
-import useStrokeHistory from './hooks/useStrokeHistory';
+import useLayers from './hooks/useLayers';
 import useKeyboardShortcuts from './hooks/useKeyboardShortcuts';
 import useSocket from './hooks/useSocket';
 import { useAuth } from './context/AuthContext';
-import { useEffect } from 'react';
 
 function DrawingApp() {
   const [brushSize, setBrushSize] = useState(5);
@@ -27,81 +27,218 @@ function DrawingApp() {
   const [currentRoom, setCurrentRoom] = useState(null);
   const [view, setView] = useState('rooms');
   const [activeMenu, setActiveMenu] = useState(null);
+  const resetViewRef = useRef(null);
   
   const { user, logout } = useAuth();
-
-  const {
-    strokes,
-    undo,
-    redo,
-    addToHistory,
-    clearHistory,
-    setInitialStrokes,
-    canUndo,
-    canRedo
-  } = useStrokeHistory();
-
+  
   const {
     socket,
     connected,
     emitStroke,
+    emitRealtimeStroke,
     emitCursor,
+    emitClearCanvas,
+    emitOperation,
     onReceiveStroke,
     onLoadStrokes,
     onCursorUpdate,
     onUserLeft,
-    onUsersUpdate
+    onUsersUpdate,
+    onCanvasCleared,
+    onRealtimeStroke,
+    onOperation
   } = useSocket(user);
 
-  useKeyboardShortcuts(undo, redo, canUndo, canRedo);
+  // Use the layer system with snapshot-based undo
+  const {
+    layers,
+    activeLayerId,
+    setActiveLayerId,
+    createLayer,
+    deleteLayer,
+    moveLayer,
+    selectLayer,
+    toggleVisibility,
+    toggleLock,
+    toggleClipping,
+    toggleAlphaLock,
+    renameLayer,
+    setOpacity,
+    setBlendMode,
+    addStroke,
+    clearLayer,
+    duplicateLayer,
+    setPaperColor,
+    setPaperTransparent,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    loadLayers
+  } = useLayers(currentRoom?._id, user?.id);
+
+  // Keyboard shortcuts
+  const handleUndo = useCallback(() => {
+    undo();
+  }, [undo]);
+
+  const handleRedo = useCallback(() => {
+    redo();
+  }, [redo]);
+
+  useKeyboardShortcuts(handleUndo, handleRedo, canUndo(), canRedo());
 
   const prevRoomIdRef = useRef(null);
+
+  // Handle drawing - add stroke to active layer
+  const handleStrokesChange = useCallback((stroke) => {
+    addStroke(stroke);
+    emitStroke(stroke);
+  }, [addStroke, emitStroke]);
+
+  // Handle real-time drawing
+  const handleDraw = useCallback((stroke) => {
+    emitRealtimeStroke(stroke);
+  }, [emitRealtimeStroke]);
+
+  // Handle cursor movement
+  const handleCursorMove = useCallback((data) => {
+    emitCursor(data);
+  }, [emitCursor]);
+
+  const handleResetView = useCallback(() => {
+    if (resetViewRef.current) resetViewRef.current();
+  }, []);
+
+  const handleResetViewReady = useCallback((resetFn) => {
+    resetViewRef.current = resetFn;
+  }, []);
+
+  // Clear canvas
+  const handleClearCanvas = useCallback(() => {
+    if (users.length > 1) {
+      if (!window.confirm(`There are ${users.length} people in this room. Are you sure you want to clear the canvas?`)) {
+        return;
+      }
+    }
+    clearLayer(activeLayerId);
+    emitClearCanvas();
+  }, [users.length, clearLayer, activeLayerId, emitClearCanvas]);
+
+  // Download canvas as PNG
+  const handleDownloadPNG = useCallback(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1920;
+    canvas.height = 1080;
+    const ctx = canvas.getContext('2d');
+    
+    // Draw white background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw all visible layers
+    layers.forEach(layer => {
+      if (layer.visible) {
+        const layerCanvas = document.querySelector(`[data-layer-id="${layer.id}"]`);
+        if (layerCanvas) {
+          ctx.globalAlpha = layer.opacity;
+          ctx.globalCompositeOperation = layer.blendMode === 'source-over' ? 'source-over' : layer.blendMode;
+          ctx.drawImage(layerCanvas, 0, 0);
+        }
+      }
+    });
+    
+    // Download
+    const link = document.createElement('a');
+    link.download = `${currentRoom?.name || 'drawing'}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }, [layers, currentRoom]);
+
+  // Handle logout
+  const handleLogout = useCallback(() => {
+    if (window.confirm('Are you sure you want to logout?')) {
+      logout();
+    }
+  }, [logout]);
+
+  // Handle back to rooms
+  const handleBackToRooms = useCallback(() => {
+    setCurrentRoom(null);
+    setView('rooms');
+  }, []);
 
   // Join socket room when entering a room
   useEffect(() => {
     const newRoomId = currentRoom?._id;
     const prevRoomId = prevRoomIdRef.current;
 
-    console.log('[App] Room effect:', { newRoomId, prevRoomId, connected });
-
     if (newRoomId === prevRoomId) return;
 
     // Leave previous room
     if (prevRoomId && socket) {
-      console.log('[App] Emitting leave-room:', prevRoomId);
       socket.emit('leave-room', prevRoomId);
-      clearHistory();
-      const canvas = document.querySelector('canvas');
-      if (canvas) {
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-      }
     }
 
     // Join new room
     if (newRoomId && socket) {
-      console.log('[App] Emitting join-room:', newRoomId);
       socket.emit('join-room', newRoomId);
     }
 
     prevRoomIdRef.current = newRoomId;
   }, [currentRoom?._id, socket]);
 
+  // Load layers when room changes
+  useEffect(() => {
+    if (currentRoom) {
+      if (currentRoom.layers && currentRoom.layers.length > 0) {
+        loadLayers(currentRoom.layers, currentRoom.activeLayerId);
+      }
+      // If no layers, useLayers will create a default one
+    }
+  }, [currentRoom, loadLayers]);
+
   // Load strokes from socket on connect
   useEffect(() => {
     const cleanup = onLoadStrokes((loadedStrokes) => {
-      setInitialStrokes(loadedStrokes);
+      // Load layers from room data
+      if (currentRoom?.layers) {
+        loadLayers(currentRoom.layers, currentRoom.activeLayerId);
+      }
     });
     return cleanup;
-  }, [onLoadStrokes, setInitialStrokes]);
+  }, [onLoadStrokes, currentRoom, loadLayers]);
 
   // Listen for new strokes from other users
   useEffect(() => {
     const cleanup = onReceiveStroke((stroke) => {
-      addToHistory(stroke);
+      addStroke(stroke);
     });
     return cleanup;
-  }, [onReceiveStroke, addToHistory]);
+  }, [onReceiveStroke, addStroke]);
+
+  // Listen for real-time strokes from other users
+  useEffect(() => {
+    const cleanup = onRealtimeStroke((stroke) => {
+      const canvas = document.querySelector(`[data-layer-id="${activeLayerId}"]`);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      
+      if (stroke.type === 'shape') {
+        // Draw shape
+      } else if (stroke.type === 'stroke' && stroke.points && stroke.points.length > 0) {
+        ctx.beginPath();
+        ctx.lineWidth = stroke.width;
+        ctx.strokeStyle = stroke.color;
+        ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+        for (let i = 1; i < stroke.points.length; i++) {
+          ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
+        }
+        ctx.stroke();
+      }
+    });
+    return cleanup;
+  }, [onRealtimeStroke, activeLayerId]);
 
   // Listen for cursor updates
   useEffect(() => {
@@ -134,28 +271,25 @@ function DrawingApp() {
     return cleanup;
   }, [onUsersUpdate]);
 
-  const handleStrokesChange = (stroke) => {
-    addToHistory(stroke);
-    emitStroke(stroke);
-  };
+  // Listen for canvas cleared by other users
+  useEffect(() => {
+    const cleanup = onCanvasCleared(() => {
+      clearLayer(activeLayerId);
+    });
+    return cleanup;
+  }, [onCanvasCleared, clearLayer, activeLayerId]);
 
-  const handleCursorMove = (data) => {
-    emitCursor(data);
-  };
+  // Listen for operations from other users
+  useEffect(() => {
+    if (!onOperation) return;
+    const cleanup = onOperation((operation) => {
+      // Apply remote operation to local state
+      // This will be handled by the operation system
+    });
+    return cleanup;
+  }, [onOperation]);
 
-  const clearCanvas = () => {
-    clearHistory();
-    const canvas = document.querySelector('canvas');
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  };
-
-  const handleLogout = () => {
-    if (window.confirm('Are you sure you want to logout?')) {
-      logout();
-    }
-  };
-
+  // Room selection handlers
   const handleSelectRoom = (room) => {
     setCurrentRoom(room);
     setView('drawing');
@@ -171,73 +305,73 @@ function DrawingApp() {
     setView('drawing');
   };
 
-  const handleBackToRooms = () => {
-    setCurrentRoom(null);
-    setView('rooms');
-  };
+  // Render room views
+  if (view === 'rooms') {
+    return (
+      <div className="app">
+        <Topbar 
+          currentUserId={user?.id}
+          onLogout={handleLogout}
+        />
+        <div className="main-content">
+          <RoomList 
+            onSelectRoom={handleSelectRoom}
+            onCreateRoom={() => setView('create')}
+            onJoinRoom={() => setView('join')}
+          />
+        </div>
+      </div>
+    );
+  }
 
-  // Render based on current view
   if (view === 'create') {
     return (
-      <div className="App">
-        <div className="header">
-          <h1>Drawing Board</h1>
-        </div>
-        <CreateRoom 
-          onCreated={handleCreateRoom}
-          onCancel={() => setView('rooms')}
+      <div className="app">
+        <Topbar 
+          currentUserId={user?.id}
+          onLogout={handleLogout}
         />
+        <div className="main-content">
+          <CreateRoom 
+            onCreated={handleCreateRoom}
+            onCancel={() => setView('rooms')}
+          />
+        </div>
       </div>
     );
   }
 
   if (view === 'join') {
     return (
-      <div className="App">
-        <div className="header">
-          <h1>Drawing Board</h1>
-        </div>
-        <JoinRoom 
-          onJoined={handleJoinRoom}
-          onCancel={() => setView('rooms')}
+      <div className="app">
+        <Topbar 
+          currentUserId={user?.id}
+          onLogout={handleLogout}
         />
-      </div>
-    );
-  }
-
-  if (view === 'rooms' || !currentRoom) {
-    return (
-      <div className="App">
-        <div className="header">
-          <h1>Drawing Board {connected ? '🟢' : '🔴'}</h1>
-          <div className="user-info">
-            <span>{user?.username || 'Guest'}</span>
-            <button className="logout-btn" onClick={handleLogout}>Logout</button>
-          </div>
+        <div className="main-content">
+          <JoinRoom 
+            onJoined={handleJoinRoom}
+            onCancel={() => setView('rooms')}
+          />
         </div>
-        <RoomList 
-          onSelectRoom={handleSelectRoom}
-          onCreateRoom={() => setView('create')}
-          onJoinRoom={() => setView('join')}
-        />
       </div>
     );
   }
 
   // Drawing view
   return (
-    <div className="App">
-      <Topbar
-        undo={undo}
-        redo={redo}
-        canUndo={canUndo}
-        canRedo={canRedo}
-        clearCanvas={clearCanvas}
-        downloadPNG={() => {}}
+    <div className="app">
+      <Topbar 
+        undo={handleUndo}
+        redo={handleRedo}
+        canUndo={canUndo()}
+        canRedo={canRedo()}
+        clearCanvas={handleClearCanvas}
+        downloadPNG={handleDownloadPNG}
         users={users}
-        currentUserId={socket?.id}
-        roomName={currentRoom.name}
-        roomCode={currentRoom.code}
+        currentUserId={user?.id}
+        roomName={currentRoom?.name}
+        roomCode={currentRoom?.code}
         activeMenu={activeMenu}
         setActiveMenu={setActiveMenu}
         onLogout={handleLogout}
@@ -260,13 +394,36 @@ function DrawingApp() {
             brushSize={brushSize}
             color={color}
             isEraser={isEraser}
-            strokes={strokes}
-            onStrokesChange={handleStrokesChange}
+            layers={layers}
+            activeLayerId={activeLayerId}
             remoteCursors={remoteCursors}
             onCursorMove={handleCursorMove}
             currentTool={currentTool}
+            onDraw={handleDraw}
+            onStrokesChange={handleStrokesChange}
+            onResetViewReady={handleResetViewReady}
           />
         </div>
+        <LayerPanel
+          layers={layers}
+          activeLayerId={activeLayerId}
+          onSelectLayer={selectLayer}
+          onCreateLayer={createLayer}
+          onDeleteLayer={deleteLayer}
+          onDuplicateLayer={duplicateLayer}
+          onMoveLayer={moveLayer}
+          onToggleVisibility={toggleVisibility}
+          onToggleLock={toggleLock}
+          onToggleClipping={toggleClipping}
+          onToggleAlphaLock={toggleAlphaLock}
+          onRenameLayer={renameLayer}
+          onSetBlendMode={setBlendMode}
+          onSetOpacity={setOpacity}
+          onClearLayer={clearLayer}
+          onSetPaperColor={setPaperColor}
+          onSetPaperTransparent={setPaperTransparent}
+          onResetView={handleResetView}
+        />
       </div>
     </div>
   );
@@ -283,11 +440,11 @@ function App() {
       case 'register':
         return <Register onSwitch={() => setAuthView('login')} />;
       case 'guest':
-        return <GuestLogin onSwitch={() => setAuthView('register')} />;
+        return <GuestLogin onSwitch={() => setAuthView('login')} />;
       default:
         return (
           <Login 
-            onSwitch={() => setAuthView('register')} 
+            onSwitch={() => setAuthView('register')}
             onGuest={() => setAuthView('guest')}
           />
         );
@@ -296,18 +453,13 @@ function App() {
 
   return (
     <Routes>
-      <Route
-        path="/login"
-        element={renderAuthForm()}
-      />
-      <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            <DrawingApp />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/login" element={renderAuthForm()} />
+      <Route path="/" element={
+        <ProtectedRoute>
+          <DrawingApp />
+        </ProtectedRoute>
+      } />
+      <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
 }

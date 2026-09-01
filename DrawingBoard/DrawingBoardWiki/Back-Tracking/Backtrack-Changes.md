@@ -105,6 +105,93 @@ Fixed users dropdown hover issue:
 - Allows mouse to travel from trigger to dropdown
 - Prevents dropdown from closing when moving to buttons
 
+### Cursor Offset Fix (2026-08-31)
+
+Fixed cursor drawing offset issue:
+- **Problem:** Drawing appeared upper-left of cursor position
+- **Cause:** CSS `max-width: 100%` and `height: auto` scaled canvas visually but not coordinates
+- **Fix:** Removed CSS scaling, let canvas use actual pixel dimensions
+
+**Files Changed:**
+- `client/src/index.css` - Removed `max-width: 100%` and `height: auto` from canvas
+- `client/src/components/Canvas.jsx` - Removed conflicting 800x600 size setting
+
+### Clear Canvas Broadcast (2026-08-31)
+
+Added real-time canvas clear broadcast:
+- **Feature:** When user clears canvas, all users in room see it immediately
+- **Confirmation:** Shows prompt when multiple users in room
+- **Message:** "There are X people in this room. Are you sure you want to clear the canvas?"
+
+**Files Changed:**
+- `server/server.js` - Added `clear-canvas` socket event
+- `client/src/hooks/useSocket.js` - Added `emitClearCanvas` and `onCanvasCleared`
+- `client/src/App.jsx` - Added confirmation prompt and broadcast
+
+### Real-time Stroke Broadcasting (2026-08-31)
+
+Added real-time stroke broadcasting as user draws:
+- **Feature:** Strokes are broadcast to other users as they are being drawn
+- **How it works:** Each mouse move during drawing emits the current stroke data
+- **Other users see:** Drawing appear in real-time without waiting for stroke completion
+
+**Files Changed:**
+- `client/src/hooks/useCanvas.js` - Added `onDraw` callback parameter
+- `client/src/components/Canvas.jsx` - Added `onDraw` prop
+- `client/src/App.jsx` - Added `handleDraw`, `drawShape` helper, and `onRealtimeStroke` listener
+- `client/src/hooks/useSocket.js` - Added `emitRealtimeStroke` and `onRealtimeStroke`
+- `server/server.js` - Added `realtime-stroke` socket event
+
+### MongoDB Cluster Update (2026-08-31)
+
+Updated to new MongoDB Atlas cluster:
+- **New Connection:** `mongodb+srv://sherwincalantoc_db_user@drawingboard.3olmlxt.mongodb.net`
+- **File Changed:** `server/.env` - Updated MONGODB_URI
+
+### Phase 6: Layer System (2026-08-31)
+
+Implemented full layer system with Clip Studio Paint-inspired features:
+
+**Operation System:**
+- Created operation types (ADD_LAYER, DELETE_LAYER, ADD_STROKE, etc.)
+- Created operation handlers with apply/inverse functions
+- Created operation executor for applying operations
+- Created undo/redo manager with operation-based history
+
+**Layer Model:**
+- Updated Room schema with layers array
+- Each layer has: id, name, type, visible, opacity, blendMode, locked, clipping, alphaLock, strokes[], transform
+- Strokes stored inside each layer (not separate array)
+
+**Layer UI:**
+- Redesigned layer panel with properties at top
+- Blend modes: Normal, Multiply, Screen, Overlay, Darken, Lighten
+- Opacity slider
+- Layer actions: New, Duplicate, Clear, Delete
+- Layer badges: Clipping, Alpha Lock, Locked
+
+**Multi-Canvas Rendering:**
+- One canvas per layer, stacked with CSS
+- Each layer renders independently
+- Active layer receives pointer events
+- Blend modes applied via CSS mix-blend-mode
+
+**Files Created:**
+- `client/src/operations/operationTypes.js` - Operation type definitions
+- `client/src/operations/operationHandlers.js` - Apply/inverse functions
+- `client/src/operations/operationExecutor.js` - Operation executor
+- `client/src/operations/undoManager.js` - Undo/redo manager
+- `client/src/hooks/useLayers.js` - Layer state with operations
+- `client/src/canvas/layerRenderer.js` - Layer rendering functions
+
+**Files Modified:**
+- `server/models/Room.js` - Added layers schema
+- `client/src/App.jsx` - Integrated useLayers hook
+- `client/src/components/Canvas.jsx` - Multi-canvas rendering
+- `client/src/components/LayerPanel.jsx` - New layer panel UI
+- `client/src/hooks/useSocket.js` - Added operation events
+- `server/server.js` - Added document:operation handler
+
 ### Socket Disconnect Bug Fix (2026-08-31)
 
 Fixed critical bug where joining a room disconnected the user:

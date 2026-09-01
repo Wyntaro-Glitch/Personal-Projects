@@ -60,6 +60,17 @@
 | 5.4 | Tool UI | ✅ Completed | Tool selection interface |
 | 5.5 | Broadcast Tools | ✅ Completed | Tools work with rooms |
 
+### Phase 6: Layers
+
+| Sub-Phase | Name | Status | Notes |
+|-----------|------|--------|-------|
+| 6.1 | Layer Model | ✅ Completed | MongoDB schema with strokes inside layer |
+| 6.2 | Layer State | ✅ Completed | useLayers hook with operation system |
+| 6.3 | Layer UI | ✅ Completed | Layer panel with properties and actions |
+| 6.4 | Canvas Layers | ✅ Completed | Multi-canvas rendering system |
+| 6.5 | Layer Tools | ✅ Completed | Add, delete, duplicate, clear, rename |
+| 6.6 | Broadcast Layers | ✅ Completed | Socket.io operation broadcasting |
+
 ### UI Enhancements
 
 | Enhancement | Status | Notes |
@@ -73,7 +84,10 @@
 | Users Dropdown | ✅ Completed | Hover dropdown with actions |
 | Logout Button | ✅ Completed | Added to users dropdown |
 | Back to Rooms | ✅ Completed | Added to users dropdown |
-| Bug Fixes | ✅ Completed | Socket disconnect, room switching, dropdown hover |
+| Clear Canvas Broadcast | ✅ Completed | Broadcasts clear to all users |
+| Clear Confirmation | ✅ Completed | Prompt when multiple users in room |
+| Real-time Stroke Broadcast | ✅ Completed | Strokes broadcast as they are drawn |
+| Bug Fixes | ✅ Completed | Socket disconnect, room switching, dropdown hover, cursor offset |
 
 ## Status Legend
 
@@ -92,7 +106,15 @@
 
 ## Accomplishments
 
-- Phase 1-5 complete
+- Phase 1-6 complete
+- Full operation system with undo/redo
+- Layer system with strokes inside each layer
+- Multi-canvas rendering
+- Blend modes (Normal, Multiply, Screen, Overlay, Darken, Lighten)
+- Layer properties (opacity, visibility, lock, clipping, alpha lock)
+- Layer actions (add, delete, duplicate, clear, rename)
+- Real-time operation broadcasting via Socket.io
+- MongoDB persistence for layers
 - Sidebar with collapsible sections
 - Two-row topbar with menus and actions
 - Ribbon with menu placeholders
@@ -100,16 +122,21 @@
 - Copy room code to clipboard
 - Users hover dropdown with actions
 - Logout and Back to Rooms in dropdown
+- Clear canvas broadcasts to all users
+- Clear canvas confirmation for multiple users
+- Real-time stroke broadcasting (strokes appear as they are drawn)
 - Socket disconnect bug fixed (React.StrictMode issue)
 - Room switching without disconnects
 - All drawing tools broadcast to room
 - Strokes saved per room in MongoDB
 - Room list shows only name (no code)
 - Dropdown hover fix (bridge area)
+- Cursor offset fix (CSS scaling issue)
+- New MongoDB Atlas cluster configured
 
 ## Next Actions
 
-1. Phase 6: Collaboration Features (if needed)
+1. Phase 6: Layers (current next phase)
 2. Add more advanced drawing tools
 3. Performance optimization
 

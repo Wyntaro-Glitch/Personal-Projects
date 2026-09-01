@@ -1,6 +1,6 @@
 import { useRef, useCallback, useEffect } from 'react';
 
-export default function useCanvas(strokes, addToHistory) {
+export default function useCanvas(strokes, addToHistory, onDraw) {
   const canvasRef = useRef(null);
   const isDrawingRef = useRef(false);
   const currentStrokeRef = useRef(null);
@@ -179,6 +179,10 @@ export default function useCanvas(strokes, addToHistory) {
 
       redrawCanvas(strokes);
       drawShape(ctx, tool, start.x, start.y, e.nativeEvent.offsetX, e.nativeEvent.offsetY, currentStrokeRef.current.color, currentStrokeRef.current.width);
+      
+      if (onDraw) {
+        onDraw({ ...currentStrokeRef.current });
+      }
     } else {
       ctx.lineTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
       ctx.stroke();
@@ -186,8 +190,12 @@ export default function useCanvas(strokes, addToHistory) {
         x: e.nativeEvent.offsetX,
         y: e.nativeEvent.offsetY
       });
+      
+      if (onDraw) {
+        onDraw({ ...currentStrokeRef.current });
+      }
     }
-  }, [getCtx, strokes, drawShape]);
+  }, [getCtx, strokes, drawShape, onDraw]);
 
   const stopDrawing = useCallback(() => {
     if (!isDrawingRef.current) return;

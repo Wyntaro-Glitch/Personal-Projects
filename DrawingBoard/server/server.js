@@ -168,6 +168,30 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Broadcast real-time stroke to room only
+  socket.on('realtime-stroke', (stroke) => {
+    if (currentRoomId) {
+      socket.to(currentRoomId).emit('realtime-stroke', stroke);
+    }
+  });
+
+  // Clear canvas in room
+  socket.on('clear-canvas', () => {
+    if (currentRoomId) {
+      console.log('[Socket] Clear canvas in room:', currentRoomId);
+      socket.to(currentRoomId).emit('canvas-cleared');
+    }
+  });
+
+  // Handle document operations (layer changes, etc.)
+  socket.on('document:operation', (operation) => {
+    if (currentRoomId) {
+      console.log('[Socket] Document operation:', operation.type, 'in room:', currentRoomId);
+      // Broadcast operation to all other users in the room
+      socket.to(currentRoomId).emit('document:operation', operation);
+    }
+  });
+
   socket.on('disconnect', async (reason) => {
     console.log('[Socket] Disconnected:', socket.id, '| Reason:', reason);
     
