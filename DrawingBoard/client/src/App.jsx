@@ -269,6 +269,15 @@ function DrawingApp() {
     return cleanup;
   }, [onCursorUpdate]);
 
+  // Emit cursor position from anywhere on the page (not just canvas)
+  useEffect(() => {
+    const handlePointerMove = (e) => {
+      emitCursor({ x: e.clientX, y: e.clientY, color });
+    };
+    document.addEventListener('pointermove', handlePointerMove);
+    return () => document.removeEventListener('pointermove', handlePointerMove);
+  }, [emitCursor, color]);
+
   // Handle user disconnect
   useEffect(() => {
     const cleanup = onUserLeft((userId) => {
