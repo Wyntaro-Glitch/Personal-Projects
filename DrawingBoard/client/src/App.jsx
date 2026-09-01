@@ -211,15 +211,18 @@ function DrawingApp() {
   }, [onLoadStrokes, currentRoom, loadLayers]);
 
   // Listen for new strokes from other users + clear remote buffer
-  const remoteStrokesRef = useRef({});
-  const [, forceRender] = useState(0);
+  const [remoteStrokes, setRemoteStrokes] = useState({});
 
   useEffect(() => {
     const cleanup = onReceiveStroke((stroke) => {
-      // Clear from remote real-time buffer
-      if (stroke && stroke.id && remoteStrokesRef.current[stroke.id]) {
-        delete remoteStrokesRef.current[stroke.id];
-        forceRender(n => n + 1);
+      // Clear from remote real-time buffer when permanent stroke arrives
+      if (stroke && stroke.id) {
+        setRemoteStrokes(prev => {
+          if (!(stroke.id in prev)) return prev;
+          const next = { ...prev };
+          delete next[stroke.id];
+          return next;
+        });
       }
       // Add to the correct layer
       if (stroke.layerId) {
@@ -247,8 +250,7 @@ function DrawingApp() {
   useEffect(() => {
     const cleanup = onRealtimeStroke((stroke) => {
       if (stroke && stroke.id) {
-        remoteStrokesRef.current[stroke.id] = stroke;
-        forceRender(n => n + 1);
+        setRemoteStrokes(prev => ({ ...prev, [stroke.id]: stroke }));
       }
     });
     return cleanup;
@@ -411,7 +413,7 @@ function DrawingApp() {
             layers={layers}
             activeLayerId={activeLayerId}
             remoteCursors={remoteCursors}
-            remoteStrokes={remoteStrokesRef.current}
+            remoteStrokes={remoteStrokes}
             onCursorMove={handleCursorMove}
             currentTool={currentTool}
             onDraw={handleDraw}
