@@ -106,11 +106,6 @@ function DrawingApp() {
     emitRealtimeStroke(stroke);
   }, [emitRealtimeStroke]);
 
-  // Handle cursor movement
-  const handleCursorMove = useCallback((data) => {
-    emitCursor(data);
-  }, [emitCursor]);
-
   const handleResetView = useCallback(() => {
     if (resetViewRef.current) resetViewRef.current();
   }, []);
@@ -273,6 +268,20 @@ function DrawingApp() {
     });
     return cleanup;
   }, [onCursorUpdate]);
+
+  // Emit cursor position from anywhere on the page, converting to canvas-internal coords
+  useEffect(() => {
+    const handlePointerMove = (e) => {
+      const canvasEl = canvasElementRef.current;
+      if (!canvasEl) return;
+      const rect = canvasEl.getBoundingClientRect();
+      const canvasX = ((e.clientX - rect.left) / rect.width) * 1920;
+      const canvasY = ((e.clientY - rect.top) / rect.height) * 1080;
+      emitCursor({ x: canvasX, y: canvasY, color });
+    };
+    document.addEventListener('pointermove', handlePointerMove);
+    return () => document.removeEventListener('pointermove', handlePointerMove);
+  }, [emitCursor, color]);
 
   // Handle user disconnect
   useEffect(() => {
@@ -446,7 +455,6 @@ function DrawingApp() {
             isEraser={isEraser}
             layers={layers}
             activeLayerId={activeLayerId}
-            onCursorMove={handleCursorMove}
             currentTool={currentTool}
             onDraw={handleDraw}
             onStrokesChange={handleStrokesChange}

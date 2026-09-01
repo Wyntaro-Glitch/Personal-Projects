@@ -18,7 +18,6 @@ export default function Canvas({
   isEraser,
   layers,
   activeLayerId,
-  onCursorMove,
   currentTool,
   onDraw,
   onStrokesChange,
@@ -54,7 +53,6 @@ export default function Canvas({
   const isEraserRef = useRef(isEraser);
   const onStrokesChangeRef = useRef(onStrokesChange);
   const onDrawRef = useRef(onDraw);
-  const onCursorMoveRef = useRef(onCursorMove);
 
   useEffect(() => { layersRef.current = layers; }, [layers]);
   useEffect(() => { activeLayerIdRef.current = activeLayerId; }, [activeLayerId]);
@@ -64,7 +62,6 @@ export default function Canvas({
   useEffect(() => { isEraserRef.current = isEraser; }, [isEraser]);
   useEffect(() => { onStrokesChangeRef.current = onStrokesChange; }, [onStrokesChange]);
   useEffect(() => { onDrawRef.current = onDraw; }, [onDraw]);
-  useEffect(() => { onCursorMoveRef.current = onCursorMove; }, [onCursorMove]);
 
   // Re-render when layers change
   useEffect(() => {
@@ -304,9 +301,6 @@ export default function Canvas({
     const coords = getCoords(e);
     if (!coords) return;
     const { x, y } = coords;
-
-    // Emit canvas-internal coordinates for accurate cross-user cursor positioning
-    onCursorMoveRef.current({ x, y, color: colorRef.current });
 
     if (!isDrawingRef.current || !currentStrokeRef.current) return;
 
