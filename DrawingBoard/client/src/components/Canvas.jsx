@@ -166,6 +166,21 @@ export default function Canvas({
     };
   }, []);
 
+  // Track cursor on container (works even when pointer is outside the canvas)
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const handleContainerMove = (e) => {
+      if (isDrawingRef.current) return; // handlePointerMove emits during drawing
+      const coords = getContainerCoords(e);
+      if (coords) {
+        onCursorMoveRef.current({ x: coords.x, y: coords.y, color: colorRef.current });
+      }
+    };
+    container.addEventListener('pointermove', handleContainerMove);
+    return () => container.removeEventListener('pointermove', handleContainerMove);
+  }, [getContainerCoords]);
+
   // Zoom with scroll wheel toward mouse position
   const handleWheel = useCallback((e) => {
     e.preventDefault();
@@ -214,6 +229,16 @@ export default function Canvas({
       y: (e.clientY - rect.top) * scaleY,
       displayX: e.clientX - rect.left,
       displayY: e.clientY - rect.top
+    };
+  }, []);
+
+  const getContainerCoords = useCallback((e) => {
+    const container = containerRef.current;
+    if (!container) return null;
+    const rect = container.getBoundingClientRect();
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
     };
   }, []);
 
@@ -298,11 +323,15 @@ export default function Canvas({
       return;
     }
 
+    // Emit cursor in container-relative coordinates (not canvas-transform-relative)
+    const containerCoords = getContainerCoords(e);
+    if (containerCoords) {
+      onCursorMoveRef.current({ x: containerCoords.x, y: containerCoords.y, color: colorRef.current });
+    }
+
     const coords = getCoords(e);
     if (!coords) return;
-    const { x, y, displayX, displayY } = coords;
-    
-    onCursorMoveRef.current({ x: displayX, y: displayY, color: colorRef.current });
+    const { x, y } = coords;
 
     if (!isDrawingRef.current || !currentStrokeRef.current) return;
 
