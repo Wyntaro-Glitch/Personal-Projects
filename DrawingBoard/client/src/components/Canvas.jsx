@@ -297,9 +297,6 @@ export default function Canvas({
       return;
     }
 
-    // Emit cursor in viewport coordinates (for fixed-position portal rendering)
-    onCursorMoveRef.current({ x: e.clientX, y: e.clientY, color: colorRef.current });
-
     const coords = getCoords(e);
     if (!coords) return;
     const { x, y } = coords;
