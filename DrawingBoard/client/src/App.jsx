@@ -118,6 +118,10 @@ function DrawingApp() {
     resetViewRef.current = resetFn;
   }, []);
 
+  const handleRemoteRenderReady = useCallback((renderFn) => {
+    renderRemoteRef.current = renderFn;
+  }, []);
+
   // Clear canvas
   const handleClearCanvas = useCallback(() => {
     if (users.length > 1) {
@@ -210,19 +214,16 @@ function DrawingApp() {
     return cleanup;
   }, [onLoadStrokes, currentRoom, loadLayers]);
 
-  // Listen for new strokes from other users + clear remote buffer
-  const [remoteStrokes, setRemoteStrokes] = useState({});
+  // Remote strokes: stored in ref, rendered directly on canvas (no React re-renders)
+  const remoteStrokesRef = useRef({});
+  const renderRemoteRef = useRef(null);
 
   useEffect(() => {
     const cleanup = onReceiveStroke((stroke) => {
       // Clear from remote real-time buffer when permanent stroke arrives
-      if (stroke && stroke.id) {
-        setRemoteStrokes(prev => {
-          if (!(stroke.id in prev)) return prev;
-          const next = { ...prev };
-          delete next[stroke.id];
-          return next;
-        });
+      if (stroke && stroke.id && remoteStrokesRef.current[stroke.id]) {
+        delete remoteStrokesRef.current[stroke.id];
+        if (renderRemoteRef.current) renderRemoteRef.current(remoteStrokesRef.current);
       }
       // Add to the correct layer
       if (stroke.layerId) {
@@ -246,11 +247,12 @@ function DrawingApp() {
     return cleanup;
   }, [onLayersUpdate, loadLayers]);
 
-  // Listen for real-time strokes from other users
+  // Listen for real-time strokes from other users (render directly, no React state)
   useEffect(() => {
     const cleanup = onRealtimeStroke((stroke) => {
       if (stroke && stroke.id) {
-        setRemoteStrokes(prev => ({ ...prev, [stroke.id]: stroke }));
+        remoteStrokesRef.current[stroke.id] = stroke;
+        if (renderRemoteRef.current) renderRemoteRef.current(remoteStrokesRef.current);
       }
     });
     return cleanup;
@@ -413,12 +415,12 @@ function DrawingApp() {
             layers={layers}
             activeLayerId={activeLayerId}
             remoteCursors={remoteCursors}
-            remoteStrokes={remoteStrokes}
             onCursorMove={handleCursorMove}
             currentTool={currentTool}
             onDraw={handleDraw}
             onStrokesChange={handleStrokesChange}
             onResetViewReady={handleResetViewReady}
+            onRemoteRenderReady={handleRemoteRenderReady}
           />
         </div>
         <LayerPanel

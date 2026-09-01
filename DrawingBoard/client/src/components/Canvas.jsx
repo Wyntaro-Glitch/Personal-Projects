@@ -19,12 +19,12 @@ export default function Canvas({
   layers,
   activeLayerId,
   remoteCursors,
-  remoteStrokes,
   onCursorMove,
   currentTool,
   onDraw,
   onStrokesChange,
   onResetViewReady,
+  onRemoteRenderReady,
   width = 1920,
   height = 1080
 }) {
@@ -39,6 +39,8 @@ export default function Canvas({
   const spaceRef = useRef(false);
   const isPanningRef = useRef(false);
   const panStartRef = useRef({ x: 0, y: 0 });
+  const lastEmitRef = useRef(0);
+  const EMIT_THROTTLE_MS = 16;
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
@@ -72,15 +74,15 @@ export default function Canvas({
     renderAllLayers(ctx, layers, width, height);
   }, [layers, width, height]);
 
-  // Render remote real-time strokes on overlay canvas
-  useEffect(() => {
+  // Direct render function for remote strokes (bypasses React re-renders)
+  const renderRemoteStrokes = useCallback((strokes) => {
     const overlay = overlayRef.current;
     if (!overlay) return;
     const ctx = overlay.getContext('2d');
     ctx.clearRect(0, 0, width, height);
 
-    const strokes = Object.values(remoteStrokes || {});
-    for (const stroke of strokes) {
+    const values = Object.values(strokes || {});
+    for (const stroke of values) {
       if (stroke.type === 'shape') {
         ctx.beginPath();
         ctx.strokeStyle = stroke.color;
@@ -110,7 +112,14 @@ export default function Canvas({
         ctx.stroke();
       }
     }
-  }, [remoteStrokes, width, height]);
+  }, [width, height]);
+
+  // Expose renderRemoteStrokes to parent
+  useEffect(() => {
+    if (onRemoteRenderReady) {
+      onRemoteRenderReady(renderRemoteStrokes);
+    }
+  }, [renderRemoteStrokes, onRemoteRenderReady]);
 
   // Set up canvas once
   useEffect(() => {
@@ -326,12 +335,20 @@ export default function Canvas({
         ctx.lineTo(x, y);
         ctx.stroke();
       }
-      onDrawRef.current({ ...currentStrokeRef.current });
+      const now = performance.now();
+      if (now - lastEmitRef.current >= EMIT_THROTTLE_MS) {
+        lastEmitRef.current = now;
+        onDrawRef.current({ ...currentStrokeRef.current });
+      }
     } else {
       ctx.lineTo(x, y);
       ctx.stroke();
       currentStrokeRef.current.points.push({ x, y });
-      onDrawRef.current({ ...currentStrokeRef.current });
+      const now = performance.now();
+      if (now - lastEmitRef.current >= EMIT_THROTTLE_MS) {
+        lastEmitRef.current = now;
+        onDrawRef.current({ ...currentStrokeRef.current });
+      }
     }
   }, [getCoords, width, height]);
 
@@ -343,6 +360,8 @@ export default function Canvas({
     }
     if (!isDrawingRef.current || !currentStrokeRef.current) return;
     isDrawingRef.current = false;
+    // Send final realtime frame so remote sees the complete stroke before it becomes permanent
+    onDrawRef.current({ ...currentStrokeRef.current });
     onStrokesChangeRef.current(currentStrokeRef.current);
     currentStrokeRef.current = null;
     shapeStartRef.current = null;
