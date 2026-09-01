@@ -148,7 +148,10 @@ io.on('connection', (socket) => {
 
   // Broadcast new stroke to room only
   socket.on('new-stroke', async (stroke) => {
+    console.log('[Socket] new-stroke received | room:', currentRoomId, '| layerId:', stroke?.layerId, '| sender:', socket.id);
     if (currentRoomId) {
+      const roomSockets = io.sockets.adapter.rooms.get(currentRoomId);
+      console.log('[Socket] Room', currentRoomId, 'has', roomSockets ? roomSockets.size : 0, 'sockets:', roomSockets ? [...roomSockets] : []);
       try {
         await Room.findByIdAndUpdate(currentRoomId, {
           $push: { strokes: stroke }
@@ -157,6 +160,9 @@ io.on('connection', (socket) => {
         console.error('[Socket] Error saving stroke:', err.message);
       }
       socket.to(currentRoomId).emit('receive-stroke', stroke);
+      console.log('[Socket] emit receive-stroke to room:', currentRoomId);
+    } else {
+      console.log('[Socket] new-stroke DROPPED - no currentRoomId for socket:', socket.id);
     }
   });
 
