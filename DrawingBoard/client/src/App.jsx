@@ -263,7 +263,7 @@ function DrawingApp() {
     const cleanup = onCursorUpdate((data) => {
       setRemoteCursors(prev => ({
         ...prev,
-        [data.userId]: { x: data.x, y: data.y, color: data.color }
+        [data.userId]: { x: data.x, y: data.y, color: data.color, onCanvas: data.onCanvas }
       }));
     });
     return cleanup;
@@ -275,9 +275,14 @@ function DrawingApp() {
       const canvasEl = canvasElementRef.current;
       if (!canvasEl) return;
       const rect = canvasEl.getBoundingClientRect();
-      const canvasX = ((e.clientX - rect.left) / rect.width) * 1920;
-      const canvasY = ((e.clientY - rect.top) / rect.height) * 1080;
-      emitCursor({ x: canvasX, y: canvasY, color });
+      const onCanvas = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
+      if (onCanvas) {
+        const canvasX = ((e.clientX - rect.left) / rect.width) * 1920;
+        const canvasY = ((e.clientY - rect.top) / rect.height) * 1080;
+        emitCursor({ x: canvasX, y: canvasY, color, onCanvas: true });
+      } else {
+        emitCursor({ x: e.clientX, y: e.clientY, color, onCanvas: false });
+      }
     };
     document.addEventListener('pointermove', handlePointerMove);
     return () => document.removeEventListener('pointermove', handlePointerMove);
@@ -394,11 +399,17 @@ function DrawingApp() {
   return (
     <>
       {Object.entries(remoteCursors).map(([userId, cursor]) => {
-        const canvasEl = canvasElementRef.current;
-        if (!canvasEl) return null;
-        const rect = canvasEl.getBoundingClientRect();
-        const viewportX = (cursor.x / 1920) * rect.width + rect.left;
-        const viewportY = (cursor.y / 1080) * rect.height + rect.top;
+        let viewportX, viewportY;
+        if (cursor.onCanvas) {
+          const canvasEl = canvasElementRef.current;
+          if (!canvasEl) return null;
+          const rect = canvasEl.getBoundingClientRect();
+          viewportX = (cursor.x / 1920) * rect.width + rect.left;
+          viewportY = (cursor.y / 1080) * rect.height + rect.top;
+        } else {
+          viewportX = cursor.x;
+          viewportY = cursor.y;
+        }
         return (
           <div
             key={userId}
