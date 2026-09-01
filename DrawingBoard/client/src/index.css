@@ -987,7 +987,7 @@ canvas {
 .canvas-area {
   flex: 1;
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
   background: #e9ecef;
   padding: 0;
   position: relative;
