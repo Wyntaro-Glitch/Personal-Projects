@@ -29,6 +29,7 @@ function DrawingApp() {
   const [activeMenu, setActiveMenu] = useState(null);
   const resetViewRef = useRef(null);
   const canvasElementRef = useRef(null);
+  const drawingLayoutRef = useRef(null);
   
   const { user, logout } = useAuth();
   
@@ -281,7 +282,12 @@ function DrawingApp() {
         const canvasY = ((e.clientY - rect.top) / rect.height) * 1080;
         emitCursor({ x: canvasX, y: canvasY, color, onCanvas: true });
       } else {
-        emitCursor({ x: e.clientX, y: e.clientY, color, onCanvas: false });
+        const layoutEl = drawingLayoutRef.current;
+        if (!layoutEl) return;
+        const lRect = layoutEl.getBoundingClientRect();
+        const normX = (e.clientX - lRect.left) / lRect.width;
+        const normY = (e.clientY - lRect.top) / lRect.height;
+        emitCursor({ x: normX, y: normY, color, onCanvas: false });
       }
     };
     document.addEventListener('pointermove', handlePointerMove);
@@ -407,8 +413,11 @@ function DrawingApp() {
           viewportX = (cursor.x / 1920) * rect.width + rect.left;
           viewportY = (cursor.y / 1080) * rect.height + rect.top;
         } else {
-          viewportX = cursor.x;
-          viewportY = cursor.y;
+          const layoutEl = drawingLayoutRef.current;
+          if (!layoutEl) return null;
+          const lRect = layoutEl.getBoundingClientRect();
+          viewportX = cursor.x * lRect.width + lRect.left;
+          viewportY = cursor.y * lRect.height + lRect.top;
         }
         return (
           <div
@@ -448,7 +457,7 @@ function DrawingApp() {
         onBackToRooms={handleBackToRooms}
       />
       <Ribbon activeMenu={activeMenu} />
-      <div className="drawing-layout">
+      <div className="drawing-layout" ref={drawingLayoutRef}>
         <Sidebar
           brushSize={brushSize}
           setBrushSize={setBrushSize}
