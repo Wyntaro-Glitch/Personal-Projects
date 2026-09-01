@@ -115,7 +115,7 @@ export default function Canvas({
     };
   }, []);
 
-  // Zoom with scroll wheel: zoom in toward mouse, zoom out toward center
+  // Zoom with scroll wheel toward mouse position
   const handleWheel = useCallback((e) => {
     e.preventDefault();
     const canvas = canvasRef.current;
@@ -126,30 +126,23 @@ export default function Canvas({
     const mouseY = e.clientY - rect.top;
 
     const oldZoom = zoomRef.current;
-    const zoomingIn = e.deltaY < 0;
-    const newZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, oldZoom + (zoomingIn ? ZOOM_STEP : -ZOOM_STEP)));
+    const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
+    const newZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, oldZoom + delta));
 
-    let newPanX = panRef.current.x;
-    let newPanY = panRef.current.y;
+    // Canvas point under mouse before zoom
+    const canvasX = (mouseX - panRef.current.x) / oldZoom;
+    const canvasY = (mouseY - panRef.current.y) / oldZoom;
 
-    if (zoomingIn) {
-      // Zoom toward mouse: keep the point under cursor fixed
-      const fracX = mouseX / rect.width;
-      const fracY = mouseY / rect.height;
-      newPanX = panRef.current.x - (fracX * (newZoom - oldZoom) * width);
-      newPanY = panRef.current.y - (fracY * (newZoom - oldZoom) * height);
-    } else {
-      // Zoom out toward center: gradually move pan toward 0
-      newPanX = panRef.current.x * (newZoom / oldZoom);
-      newPanY = panRef.current.y * (newZoom / oldZoom);
-    }
+    // New pan so the same canvas point stays under mouse
+    const newPanX = mouseX - canvasX * newZoom;
+    const newPanY = mouseY - canvasY * newZoom;
 
     panRef.current = { x: newPanX, y: newPanY };
     setPan({ x: newPanX, y: newPanY });
 
     zoomRef.current = newZoom;
     setZoom(newZoom);
-  }, [width, height]);
+  }, []);
 
   // Attach wheel listener with passive: false for preventDefault
   useEffect(() => {

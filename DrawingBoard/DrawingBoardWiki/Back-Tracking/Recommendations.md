@@ -2,7 +2,7 @@
 
 > Best practices and improvements to apply before or during development
 > 
-> **Last Updated:** 2026-08-31
+> **Last Updated:** 2026-09-01
 
 ## Completed
 
@@ -147,32 +147,181 @@ npm install --save-dev eslint prettier
 ## Security Recommendations
 
 ### 21. Rate Limiting
-**Why:** Prevent abuse.
+**Why:** Prevent brute force on login/register.
 
 ```bash
 cd server
 npm install express-rate-limit
 ```
 
-### 22. Input Validation
-**Why:** Prevent injection attacks.
+```js
+// server.js
+const rateLimit = require('express-rate-limit');
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // 10 attempts per window
+  message: { error: 'Too many attempts, try again later' }
+});
+
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+```
+
+### 22. Input Validation & Sanitization
+**Why:** Prevent XSS and injection attacks via room names, usernames, etc.
 
 ```bash
 cd server
-npm install express-validator
+npm install express-validator sanitize-html
 ```
 
-### 23. CORS Configuration
-**Why:** Restrict cross-origin requests.
+```js
+// Validate on all POST routes
+const { body, validationResult } = require('express-validator');
 
-Already configured in server.js with specific origin.
+router.post('/register',
+  body('username').trim().isLength({ min: 3, max: 30 }).escape(),
+  body('email').isEmail().normalizeEmail(),
+  body('password').isLength({ min: 6 }),
+  (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    // ...
+  }
+);
+```
 
-### 24. Helmet.js
-**Why:** Security headers.
+### 23. Socket.io Authentication
+**Why:** Currently anyone with a room code can join via socket with no token verification.
+
+```js
+// server.js - Verify JWT on socket connection
+io.use((socket, next) => {
+  const token = socket.handshake.auth.token;
+  if (!token) return next(new Error('Authentication required'));
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    socket.userId = decoded.userId;
+    next();
+  } catch (err) {
+    next(new Error('Invalid token'));
+  }
+});
+```
+
+### 24. Helmet.js Security Headers
+**Why:** Adds HTTP security headers (XSS protection, content type sniffing, etc.).
 
 ```bash
 cd server
 npm install helmet
+```
+
+```js
+// server.js
+const helmet = require('helmet');
+app.use(helmet());
+```
+
+### 25. HTTPS Enforcement
+**Why:** Prevent man-in-the-middle attacks on production.
+
+```js
+// server.js (production)
+if (process.env.NODE_ENV === 'production') {
+  app.use((req, res, next) => {
+    if (req.headers['x-forwarded-proto'] !== 'https') {
+      return res.redirect(`https://${req.headers.host}${req.url}`);
+    }
+    next();
+  });
+}
+```
+
+### 26. CSRF Protection
+**Why:** Prevent cross-site request forgery on state-changing routes.
+
+```bash
+cd server
+npm install csurf
+```
+
+### 27. Password Security Improvements
+**Why:** Current bcrypt salt rounds (10) is fine but could be stronger. Also add password complexity requirements.
+
+```js
+// User model - enforce stronger passwords
+password: {
+  type: String,
+  minlength: 8,
+  validate: {
+    validator: (v) => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(v),
+    message: 'Password must contain uppercase, lowercase, and number'
+  }
+}
+```
+
+### 28. JWT Improvements
+**Why:** Add token refresh, blacklisting, and shorter expiry for敏感 routes.
+
+```js
+// Use shorter expiry for access tokens
+const token = jwt.sign(
+  { userId: user._id, username: user.username },
+  process.env.JWT_SECRET,
+  { expiresIn: '1h' } // Shorter expiry
+);
+
+// Add refresh token for long sessions
+const refreshToken = jwt.sign(
+  { userId: user._id },
+  process.env.JWT_REFRESH_SECRET,
+  { expiresIn: '7d' }
+);
+```
+
+### 29. Environment Variable Security
+**Why:** Ensure secrets aren't committed to git.
+
+```gitignore
+# .gitignore - already exists but verify
+server/.env
+*.env
+.env.local
+```
+
+### 30. MongoDB Injection Protection
+**Why:** Mongoose helps but sanitization is still needed.
+
+```js
+// Sanitize MongoDB queries
+const sanitize = require('mongo-sanitize');
+const cleanInput = sanitize(req.body.username);
+```
+
+### 31. Error Message Leaking
+**Why:** Current error handlers expose `err.message` to clients, leaking internal details.
+
+```js
+// production error handler
+app.use((err, req, res, next) => {
+  console.error(err); // Log internally
+  res.status(500).json({ error: 'Internal server error' }); // Generic message
+});
+```
+
+### 32. Room Code Brute Force
+**Why:** 6-char alphanumeric codes can be guessed. Add rate limiting on join attempts.
+
+```js
+// Rate limit room joins
+const joinLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: 20,
+  message: { error: 'Too many join attempts' }
+});
+app.use('/api/rooms/join', joinLimiter);
 ```
 
 ## Performance Recommendations
@@ -228,3 +377,13 @@ Future improvements:
 - [ ] Unit tests
 - [ ] TypeScript
 - [ ] ESLint + Prettier
+- [ ] Rate limiting (login/register)
+- [ ] Input validation & sanitization
+- [ ] Socket.io auth (verify JWT on connect)
+- [ ] Helmet.js security headers
+- [ ] HTTPS enforcement
+- [ ] CSRF protection
+- [ ] Password complexity requirements
+- [ ] JWT refresh tokens
+- [ ] Error message sanitization
+- [ ] Room code brute force protection
