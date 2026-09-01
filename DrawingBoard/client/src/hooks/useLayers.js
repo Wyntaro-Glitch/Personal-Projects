@@ -238,11 +238,22 @@ export default function useLayers(roomId, userId, onLayersChange) {
   const addStrokeToLayer = useCallback((layerId, stroke) => {
     setLayers(prev => {
       const layer = prev.find(l => l.id === layerId);
-      if (!layer || layer.locked || layer.type === 'paper') return prev;
-      return prev.map(l => l.id === layerId
-        ? { ...l, strokes: [...l.strokes, structuredClone(stroke)] }
-        : l
-      );
+      if (layer && !layer.locked && layer.type !== 'paper') {
+        return prev.map(l => l.id === layerId
+          ? { ...l, strokes: [...l.strokes, structuredClone(stroke)] }
+          : l
+        );
+      }
+      // Fallback: if layerId not found (different client generated different IDs),
+      // add to the first non-paper, non-locked layer
+      const fallback = prev.find(l => l.type !== 'paper' && !l.locked);
+      if (fallback) {
+        return prev.map(l => l.id === fallback.id
+          ? { ...l, strokes: [...l.strokes, structuredClone(stroke)] }
+          : l
+        );
+      }
+      return prev;
     });
     return true;
   }, []);
