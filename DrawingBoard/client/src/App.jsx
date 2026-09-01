@@ -261,6 +261,7 @@ function DrawingApp() {
   // Listen for cursor updates
   useEffect(() => {
     const cleanup = onCursorUpdate((data) => {
+      console.log('[Cursor] Received from', data.userId, ':', data.x, data.y);
       setRemoteCursors(prev => ({
         ...prev,
         [data.userId]: { x: data.x, y: data.y, color: data.color }
