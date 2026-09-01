@@ -210,6 +210,18 @@ export default function useLayers(roomId, userId) {
     return true;
   }, [activeLayerId, saveSnapshot]);
 
+  const addStrokeToLayer = useCallback((layerId, stroke) => {
+    setLayers(prev => {
+      const layer = prev.find(l => l.id === layerId);
+      if (!layer || layer.locked || layer.type === 'paper') return prev;
+      return prev.map(l => l.id === layerId
+        ? { ...l, strokes: [...l.strokes, structuredClone(stroke)] }
+        : l
+      );
+    });
+    return true;
+  }, []);
+
   const clearLayer = useCallback((layerId) => {
     if (isPaper(layerId)) return;
     setLayers(prev => {
@@ -268,11 +280,15 @@ export default function useLayers(roomId, userId) {
       const hasPaper = roomLayers[0]?.type === 'paper';
       if (hasPaper) {
         setLayers(roomLayers);
-        setActiveLayerId(roomActiveLayerId || roomLayers[1]?.id || roomLayers[0].id);
+        if (roomActiveLayerId) {
+          setActiveLayerId(roomActiveLayerId);
+        }
       } else {
         const paper = createPaperLayer();
         setLayers([paper, ...roomLayers]);
-        setActiveLayerId(roomActiveLayerId || roomLayers[0].id);
+        if (roomActiveLayerId) {
+          setActiveLayerId(roomActiveLayerId);
+        }
       }
     } else {
       const paper = createPaperLayer();
@@ -308,6 +324,7 @@ export default function useLayers(roomId, userId) {
     setOpacity,
     setBlendMode,
     addStroke,
+    addStrokeToLayer,
     clearLayer,
     duplicateLayer,
     setPaperColor,

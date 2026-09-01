@@ -38,6 +38,7 @@ function DrawingApp() {
     emitRealtimeStroke,
     emitCursor,
     emitClearCanvas,
+    emitLayersUpdate,
     emitOperation,
     onReceiveStroke,
     onLoadStrokes,
@@ -45,6 +46,7 @@ function DrawingApp() {
     onUserLeft,
     onUsersUpdate,
     onCanvasCleared,
+    onLayersUpdate,
     onRealtimeStroke,
     onOperation
   } = useSocket(user);
@@ -66,6 +68,7 @@ function DrawingApp() {
     setOpacity,
     setBlendMode,
     addStroke,
+    addStrokeToLayer,
     clearLayer,
     duplicateLayer,
     setPaperColor,
@@ -92,9 +95,10 @@ function DrawingApp() {
 
   // Handle drawing - add stroke to active layer
   const handleStrokesChange = useCallback((stroke) => {
-    addStroke(stroke);
-    emitStroke(stroke);
-  }, [addStroke, emitStroke]);
+    const strokeWithLayer = { ...stroke, layerId: activeLayerId };
+    addStroke(strokeWithLayer);
+    emitStroke(strokeWithLayer);
+  }, [activeLayerId, addStroke, emitStroke]);
 
   // Handle real-time drawing
   const handleDraw = useCallback((stroke) => {
@@ -212,10 +216,37 @@ function DrawingApp() {
   // Listen for new strokes from other users
   useEffect(() => {
     const cleanup = onReceiveStroke((stroke) => {
-      addStroke(stroke);
+      if (stroke.layerId) {
+        addStrokeToLayer(stroke.layerId, stroke);
+      } else {
+        addStroke(stroke);
+      }
     });
     return cleanup;
-  }, [onReceiveStroke, addStroke]);
+  }, [onReceiveStroke, addStroke, addStrokeToLayer]);
+
+  // Broadcast layer changes to other users
+  const isRemoteLayersUpdate = useRef(false);
+  useEffect(() => {
+    if (isRemoteLayersUpdate.current) {
+      isRemoteLayersUpdate.current = false;
+      return;
+    }
+    if (socket && connected && currentRoom) {
+      emitLayersUpdate(layers);
+    }
+  }, [layers, socket, connected, currentRoom, emitLayersUpdate]);
+
+  // Listen for layer updates from other users
+  useEffect(() => {
+    const cleanup = onLayersUpdate((remoteLayers) => {
+      if (remoteLayers && remoteLayers.length > 0) {
+        isRemoteLayersUpdate.current = true;
+        loadLayers(remoteLayers);
+      }
+    });
+    return cleanup;
+  }, [onLayersUpdate, loadLayers]);
 
   // Listen for real-time strokes from other users
   useEffect(() => {

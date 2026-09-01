@@ -194,6 +194,18 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Broadcast layer state changes to room and save to DB
+  socket.on('layers-update', async (layers) => {
+    if (currentRoomId) {
+      try {
+        await Room.findByIdAndUpdate(currentRoomId, { layers });
+      } catch (err) {
+        console.error('[Socket] Error saving layers:', err.message);
+      }
+      socket.to(currentRoomId).emit('layers-update', layers);
+    }
+  });
+
   socket.on('disconnect', async (reason) => {
     console.log('[Socket] Disconnected:', socket.id, '| Reason:', reason);
     

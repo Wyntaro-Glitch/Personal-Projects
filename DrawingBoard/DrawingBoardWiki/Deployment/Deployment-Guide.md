@@ -46,23 +46,23 @@ git push
 2. Connect your GitHub repo
 3. Fill in:
 
-| Field | Value |
-|-------|-------|
-| **Name** | `drawingboard-api` |
-| **Root Directory** | `server` |
-| **Runtime** | `Node` |
-| **Build Command** | `npm install` |
-| **Start Command** | `npm start` |
-| **Instance Type** | Free |
+| Field              | Value              |
+| ------------------ | ------------------ |
+| **Name**           | `drawingboard-api` |
+| **Root Directory** | `server`           |
+| **Runtime**        | `Node`             |
+| **Build Command**  | `npm install`      |
+| **Start Command**  | `npm start`        |
+| **Instance Type**  | Free               |
 
 4. Add Environment Variables (Advanced → Environment Variables):
 
-| Key | Value |
-|-----|-------|
+| Key           | Value                                                                                                           |
+| ------------- | --------------------------------------------------------------------------------------------------------------- |
 | `MONGODB_URI` | `mongodb+srv://sherwincalantoc_db_user:O0LveNKoYty3PQSs@drawingboard.3olmlxt.mongodb.net/?appName=DrawingBoard` |
-| `JWT_SECRET` | `drawingboard-secret-key-2026` |
-| `CORS_ORIGIN` | `https://drawingboard.onrender.com` |
-| `NODE_ENV` | `production` |
+| `JWT_SECRET`  | `drawingboard-secret-key-2026`                                                                                  |
+| `CORS_ORIGIN` | `https://drawingboard.onrender.com`                                                                             |
+| `NODE_ENV`    | `production`                                                                                                    |
 
 5. Click **Create Web Service**
 6. Wait for deployment to complete

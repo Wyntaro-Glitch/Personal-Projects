@@ -108,6 +108,12 @@ export default function useSocket(userInfo = null) {
     }
   }, [socket]);
 
+  const emitLayersUpdate = useCallback((layers) => {
+    if (socket) {
+      socket.emit('layers-update', layers);
+    }
+  }, [socket]);
+
   const emitOperation = useCallback((operation) => {
     if (socket) {
       socket.emit('document:operation', operation);
@@ -156,6 +162,13 @@ export default function useSocket(userInfo = null) {
     }
   }, [socket]);
 
+  const onLayersUpdate = useCallback((callback) => {
+    if (socket) {
+      socket.on('layers-update', callback);
+      return () => socket.off('layers-update', callback);
+    }
+  }, [socket]);
+
   const onRealtimeStroke = useCallback((callback) => {
     if (socket) {
       socket.on('realtime-stroke', callback);
@@ -177,6 +190,7 @@ export default function useSocket(userInfo = null) {
     emitRealtimeStroke,
     emitCursor,
     emitClearCanvas,
+    emitLayersUpdate,
     emitOperation,
     onReceiveStroke,
     onLoadStrokes,
@@ -184,6 +198,7 @@ export default function useSocket(userInfo = null) {
     onUserLeft,
     onUsersUpdate,
     onCanvasCleared,
+    onLayersUpdate,
     onRealtimeStroke,
     onOperation
   };
