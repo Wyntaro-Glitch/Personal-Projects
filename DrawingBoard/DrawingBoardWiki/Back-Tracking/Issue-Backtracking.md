@@ -230,6 +230,23 @@
 
 ---
 
+### Canvas Renders Above Topbar When Zoomed
+
+**Date:** 2026-09-02  
+**Phase:** Canvas Zoom  
+**Severity:** Medium
+
+**Symptom:** When zoomed in heavily, the canvas extends beyond its container and overlaps the topbar.
+
+**Root Cause:** `.topbar-container` had no `z-index` or `position`, so it sat below the canvas in the stacking order.
+
+**Fix:** Added `position: relative; z-index: 1` to `.topbar-container`.
+
+**Files Changed:**
+- `client/src/index.css` — `.topbar-container` z-index layering
+
+---
+
 | Symptom | Cause | Fix |
 |---------|-------|-----|
 | `useRef is null` | Canvas not mounted | Check useEffect dependency |
