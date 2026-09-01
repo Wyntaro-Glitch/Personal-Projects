@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { renderAllLayers } from '../canvas/layerRenderer';
 
 const generateId = () => {
@@ -217,31 +218,6 @@ export default function Canvas({
     };
   }, []);
 
-  const getContainerCoords = useCallback((e) => {
-    const container = containerRef.current;
-    if (!container) return null;
-    const rect = container.getBoundingClientRect();
-    return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    };
-  }, []);
-
-  // Track cursor on container (works even when pointer is outside the canvas)
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-    const handleContainerMove = (e) => {
-      if (isDrawingRef.current) return;
-      const coords = getContainerCoords(e);
-      if (coords) {
-        onCursorMoveRef.current({ x: coords.x, y: coords.y, color: colorRef.current });
-      }
-    };
-    container.addEventListener('pointermove', handleContainerMove);
-    return () => container.removeEventListener('pointermove', handleContainerMove);
-  }, [getContainerCoords]);
-
   const handlePointerDown = useCallback((e) => {
     // Pan mode with space
     if (spaceRef.current) {
@@ -323,11 +299,8 @@ export default function Canvas({
       return;
     }
 
-    // Emit cursor in container-relative coordinates (not canvas-transform-relative)
-    const containerCoords = getContainerCoords(e);
-    if (containerCoords) {
-      onCursorMoveRef.current({ x: containerCoords.x, y: containerCoords.y, color: colorRef.current });
-    }
+    // Emit cursor in viewport coordinates (for fixed-position portal rendering)
+    onCursorMoveRef.current({ x: e.clientX, y: e.clientY, color: colorRef.current });
 
     const coords = getCoords(e);
     if (!coords) return;
@@ -445,24 +418,27 @@ export default function Canvas({
       <div className="zoom-indicator">
         {Math.round(zoom * 100)}%
       </div>
-      {Object.entries(remoteCursors).map(([userId, cursor]) => (
-        <div
-          key={userId}
-          className="remote-cursor"
-          style={{
-            position: 'absolute',
-            left: cursor.x,
-            top: cursor.y,
-            width: '20px',
-            height: '20px',
-            borderRadius: '50%',
-            backgroundColor: cursor.color,
-            pointerEvents: 'none',
-            transform: 'translate(-50%, -50%)',
-            zIndex: 10
-          }}
-        />
-      ))}
+      {createPortal(
+        Object.entries(remoteCursors).map(([userId, cursor]) => (
+          <div
+            key={userId}
+            style={{
+              position: 'fixed',
+              left: cursor.x,
+              top: cursor.y,
+              width: '20px',
+              height: '20px',
+              borderRadius: '50%',
+              backgroundColor: cursor.color,
+              pointerEvents: 'none',
+              transform: 'translate(-50%, -50%)',
+              zIndex: 99999,
+              mixBlendMode: 'difference'
+            }}
+          />
+        )),
+        document.body
+      )}
     </div>
   );
 }
