@@ -388,25 +388,25 @@ function DrawingApp() {
   // Drawing view
   return (
     <>
-      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 99999 }}>
-        {Object.entries(remoteCursors).map(([userId, cursor]) => (
-          <div
-            key={userId}
-            style={{
-              position: 'absolute',
-              left: cursor.x,
-              top: cursor.y,
-              width: '20px',
-              height: '20px',
-              borderRadius: '50%',
-              backgroundColor: cursor.color,
-              border: '2px solid white',
-              boxShadow: '0 0 4px rgba(0,0,0,0.5)',
-              transform: 'translate(-50%, -50%)'
-            }}
-          />
-        ))}
-      </div>
+      {Object.entries(remoteCursors).map(([userId, cursor]) => (
+        <div
+          key={userId}
+          style={{
+            position: 'fixed',
+            left: cursor.x,
+            top: cursor.y,
+            width: '20px',
+            height: '20px',
+            borderRadius: '50%',
+            backgroundColor: cursor.color,
+            border: '2px solid white',
+            boxShadow: '0 0 4px rgba(0,0,0,0.5)',
+            transform: 'translate(-50%, -50%)',
+            pointerEvents: 'none',
+            zIndex: 99999
+          }}
+        />
+      ))}
       <div className="app">
       <Topbar 
         undo={handleUndo}
