@@ -990,7 +990,9 @@ canvas {
   overflow: visible;
   background: #e9ecef;
   padding: 0;
-  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Layer Panel */
