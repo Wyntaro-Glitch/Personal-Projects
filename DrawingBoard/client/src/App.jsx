@@ -261,7 +261,6 @@ function DrawingApp() {
   // Listen for cursor updates
   useEffect(() => {
     const cleanup = onCursorUpdate((data) => {
-      console.log('[Cursor] Received from', data.userId, ':', data.x, data.y);
       setRemoteCursors(prev => ({
         ...prev,
         [data.userId]: { x: data.x, y: data.y, color: data.color }
@@ -379,7 +378,27 @@ function DrawingApp() {
 
   // Drawing view
   return (
-    <div className="app">
+    <>
+      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 99999 }}>
+        {Object.entries(remoteCursors).map(([userId, cursor]) => (
+          <div
+            key={userId}
+            style={{
+              position: 'absolute',
+              left: cursor.x,
+              top: cursor.y,
+              width: '20px',
+              height: '20px',
+              borderRadius: '50%',
+              backgroundColor: cursor.color,
+              border: '2px solid white',
+              boxShadow: '0 0 4px rgba(0,0,0,0.5)',
+              transform: 'translate(-50%, -50%)'
+            }}
+          />
+        ))}
+      </div>
+      <div className="app">
       <Topbar 
         undo={handleUndo}
         redo={handleRedo}
@@ -415,7 +434,6 @@ function DrawingApp() {
             isEraser={isEraser}
             layers={layers}
             activeLayerId={activeLayerId}
-            remoteCursors={remoteCursors}
             onCursorMove={handleCursorMove}
             currentTool={currentTool}
             onDraw={handleDraw}
@@ -445,7 +463,7 @@ function DrawingApp() {
           onResetView={handleResetView}
         />
       </div>
-    </div>
+    </>
   );
 }
 

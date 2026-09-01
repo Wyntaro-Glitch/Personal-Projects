@@ -163,13 +163,10 @@ io.on('connection', (socket) => {
   // Broadcast cursor position to room only
   socket.on('cursor-move', (data) => {
     if (currentRoomId) {
-      console.log('[Cursor] Broadcasting from', socket.id, 'in room', currentRoomId);
       socket.to(currentRoomId).emit('cursor-update', {
         userId: socket.id,
         ...data
       });
-    } else {
-      console.log('[Cursor] No room for', socket.id, '- not broadcasting');
     }
   });
 

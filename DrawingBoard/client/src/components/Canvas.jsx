@@ -1,5 +1,4 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { renderAllLayers } from '../canvas/layerRenderer';
 
 const generateId = () => {
@@ -19,7 +18,6 @@ export default function Canvas({
   isEraser,
   layers,
   activeLayerId,
-  remoteCursors,
   onCursorMove,
   currentTool,
   onDraw,
@@ -418,27 +416,6 @@ export default function Canvas({
       <div className="zoom-indicator">
         {Math.round(zoom * 100)}%
       </div>
-      {createPortal(
-        Object.entries(remoteCursors).map(([userId, cursor]) => (
-          <div
-            key={userId}
-            style={{
-              position: 'fixed',
-              left: cursor.x,
-              top: cursor.y,
-              width: '20px',
-              height: '20px',
-              borderRadius: '50%',
-              backgroundColor: cursor.color,
-              pointerEvents: 'none',
-              transform: 'translate(-50%, -50%)',
-              zIndex: 99999,
-              mixBlendMode: 'difference'
-            }}
-          />
-        )),
-        document.body
-      )}
     </div>
   );
 }
