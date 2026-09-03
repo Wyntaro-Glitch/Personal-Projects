@@ -44,6 +44,14 @@ export default function Login({ onSwitch, onGuest }) {
         />
         <button type="submit">Login</button>
       </form>
+      <button
+        type="button"
+        className="dev-login-btn"
+        onClick={() => { setUsername('wyntaro'); setPassword('kappa123'); }}
+        style={{ marginTop: '8px', background: '#555', fontSize: '12px', padding: '6px 12px' }}
+      >
+        Dev Login
+      </button>
       <div className="auth-switch">
         <p>
           Don't have an account?{' '}
