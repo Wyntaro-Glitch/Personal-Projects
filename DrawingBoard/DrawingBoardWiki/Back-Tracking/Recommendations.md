@@ -447,3 +447,5 @@ Future improvements:
 - [ ] Error message sanitization
 - [ ] Room code brute force protection
 - [ ] Lobby UI assets (mascot, avatars, status icons, activity feed)
+- [ ] More brushes (brush tab)
+- [ ] Reference window
